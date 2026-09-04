@@ -1358,7 +1358,7 @@ export function ThemeManage() {
           <dl className="theme-masthead-meta">
             <div>
               <dt>主题</dt>
-              <dd>{config?.theme || "luminaplusforpter"}</dd>
+              <dd>{config?.theme || "LuminaPlusForPTer"}</dd>
             </div>
             <div>
               <dt>已绑定 Ping</dt>
