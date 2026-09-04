@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, BarChart3, CircleDollarSign } from "lucide-react";
+import { ArrowDown, ArrowUp, CircleDollarSign } from "lucide-react";
 import { Flag } from "@/components/ui/Flag";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -279,35 +279,17 @@ function HomeOverviewCards({
         )}
       </article>
 
-      <article className="overview-card" data-metric="bandwidth">
-        <span className="overview-card-label">实时带宽</span>
-        <div className="overview-card-main overview-card-main-split">
-          <div className="overview-card-direction is-up">
-            <span className="overview-card-direction-head">
-              <ArrowUp strokeWidth={2.4} aria-hidden />
-              上行
-            </span>
-            <p
-              className="overview-card-value"
-              title={bandwidthDetailLabel}
-            >
-              {upRate.value}
-              <span className="overview-card-unit">{upRate.unit}</span>
-            </p>
-          </div>
-          <div className="overview-card-direction is-down">
-            <span className="overview-card-direction-head">
-              <ArrowDown strokeWidth={2.4} aria-hidden />
-              下行
-            </span>
-            <p className="overview-card-value" title={`下行速率 ${downRateLabel}`}>
-              {downRate.value}
-              <span className="overview-card-unit">{downRate.unit}</span>
-            </p>
-          </div>
+      <article className="overview-card" data-metric="asset">
+        <div className="overview-card-head">
+          <span className="overview-card-label">资产概览</span>
+          {showDetailButton && <RenewalReminder nodes={renewalNodes} />}
+        </div>
+        <div className="overview-card-main">
+          <p className="overview-card-value">{remainingValue}</p>
         </div>
         <div className="overview-card-footer">
-          {renderRating(bandwidthRating)}
+          <p className="overview-card-caption">实时汇率计算</p>
+          {renderRating(assetRating)}
         </div>
       </article>
 
@@ -333,59 +315,69 @@ function HomeOverviewCards({
       )}
 
       {showTodayTrafficCard && (
-        <article className="overview-card" data-metric="today-traffic">
+        <article
+          className="overview-card overview-card-clickable"
+          data-metric="today-traffic"
+          role="button"
+          tabIndex={0}
+          aria-label="打开今日流量详情"
+          onClick={(event) => onOpenTodayTraffic(event.currentTarget.getBoundingClientRect())}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onOpenTodayTraffic(event.currentTarget.getBoundingClientRect());
+            }
+          }}
+        >
           <div className="overview-card-head">
             <span className="overview-card-label">今日流量</span>
-            <button
-              type="button"
-              className="overview-card-action"
-              aria-label="打开今日流量详情"
-              title="今日流量详情"
-              onClick={(event) => onOpenTodayTraffic(event.currentTarget.getBoundingClientRect())}
-            >
-              <BarChart3 size={16} />
-            </button>
+            <span className="overview-card-caption">{todayTrafficCaption}</span>
           </div>
           <div className="overview-card-main overview-card-main-split">
             <div className="overview-card-direction is-up">
-              <span className="overview-card-direction-head">
-                <ArrowUp strokeWidth={2.4} aria-hidden />
-                上行
-              </span>
               <p className="overview-card-value">
+                <ArrowUp className="overview-card-direction-icon" strokeWidth={2.4} aria-hidden />
                 {todayUpValue}
                 <span className="overview-card-unit">{todayUpUnit}</span>
               </p>
             </div>
             <div className="overview-card-direction is-down">
-              <span className="overview-card-direction-head">
-                <ArrowDown strokeWidth={2.4} aria-hidden />
-                下行
-              </span>
               <p className="overview-card-value">
+                <ArrowDown className="overview-card-direction-icon" strokeWidth={2.4} aria-hidden />
                 {todayDownValue}
                 <span className="overview-card-unit">{todayDownUnit}</span>
               </p>
             </div>
           </div>
           <div className="overview-card-footer">
-            <p className="overview-card-caption">{todayTrafficCaption}</p>
             {renderRating(todayTrafficRating)}
           </div>
         </article>
       )}
 
-      <article className="overview-card" data-metric="asset">
-        <div className="overview-card-head">
-          <span className="overview-card-label">资产概览</span>
-          {showDetailButton && <RenewalReminder nodes={renewalNodes} />}
-        </div>
-        <div className="overview-card-main">
-          <p className="overview-card-value">{remainingValue}</p>
+      <article className="overview-card" data-metric="bandwidth">
+        <span className="overview-card-label">实时带宽</span>
+        <div className="overview-card-main overview-card-main-split">
+          <div className="overview-card-direction is-up">
+            <p
+              className="overview-card-value"
+              title={bandwidthDetailLabel}
+            >
+              <ArrowUp className="overview-card-direction-icon" strokeWidth={2.4} aria-hidden />
+              {upRate.value}
+              <span className="overview-card-unit">{upRate.unit}</span>
+            </p>
+          </div>
+          <div className="overview-card-direction is-down">
+            <p className="overview-card-value" title={`下行速率 ${downRateLabel}`}>
+              <ArrowDown className="overview-card-direction-icon" strokeWidth={2.4} aria-hidden />
+              {downRate.value}
+              <span className="overview-card-unit">{downRate.unit}</span>
+            </p>
+          </div>
         </div>
         <div className="overview-card-footer">
-          <p className="overview-card-caption">实时汇率计算</p>
-          {renderRating(assetRating)}
+          {renderRating(bandwidthRating)}
         </div>
       </article>
     </section>

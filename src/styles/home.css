@@ -165,6 +165,25 @@
   transform: scale(0.94);
 }
 
+/* 可点击整卡(今日流量):整卡可触发详情弹窗,给出可交互线索。 */
+.overview-card-clickable {
+  cursor: pointer;
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.overview-card-clickable:hover {
+  border-color: color-mix(in srgb, var(--metric-accent) 40%, var(--hairline));
+}
+
+.overview-card-clickable:active {
+  transform: scale(0.985);
+}
+
+.overview-card-clickable:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--text-secondary) 54%, transparent);
+  outline-offset: 2px;
+}
+
 /* 续费提醒复用资产入口，不另占首页内容流。平时只露一个轻量角标，弹层覆盖展开，
    因此不会把概览、筛选或节点卡向下推。 */
 .renewal-reminder {
@@ -509,81 +528,71 @@
   letter-spacing: 0;
 }
 
-/* 实时带宽与今日流量卡:上行/下行左右分栏,上行大字号主视觉、下行小字号次级,
+/* 实时带宽与今日流量卡:上行/下行紧凑挨在一起排于同一行底部基线,上行大字号突出、下行小字号次级,
    方向色贯穿小标与数值(带宽卡上行数值保留热力色 inline 覆盖)。 */
 .overview-card-main-split {
-  align-items: stretch;
+  /* 覆写 .overview-card-main 的 space-between,让两字段紧挨而非分居两端。 */
+  justify-content: flex-start;
+  align-items: flex-end;
   gap: 8px;
 }
 
 .overview-card-direction {
   display: flex;
   min-width: 0;
-  flex: 1 1 0;
+  flex: 0 0 auto;
   flex-direction: column;
-  gap: 6px;
+  /* 值底色(数字与单位)贴底对齐,两列视觉基线一致。 */
+  justify-content: flex-end;
+  gap: 0;
 }
 
-/* 上行略宽,呼应其更大的字号与主视觉地位。 */
+/* 上行保持主视觉地位,不做拉伸。 */
 .overview-card-direction.is-up {
-  flex-grow: 1.3;
+  flex-grow: 0;
 }
 
-.overview-card-direction-head {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: 4px;
-  overflow: hidden;
-  color: var(--text-tertiary);
-  font-size: 10.5px;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.overview-card-direction-head svg {
-  width: 1em;
-  height: 1em;
+/* 方向图标内联到数值前:作为上行/下行的小标记,明显小于数值。 */
+.overview-card-direction-icon {
+  width: 0.5em;
+  height: 0.5em;
   flex-shrink: 0;
+  align-self: center;
 }
 
-.overview-card-direction.is-up .overview-card-direction-head svg,
-.overview-card-direction.is-up .overview-card-value {
+.overview-card-direction.is-up .overview-card-value,
+.overview-card-direction.is-up .overview-card-direction-icon {
   color: var(--traffic-up);
 }
 
-.overview-card-direction.is-down .overview-card-direction-head svg,
-.overview-card-direction.is-down .overview-card-value {
+.overview-card-direction.is-down .overview-card-value,
+.overview-card-direction.is-down .overview-card-direction-icon {
   color: var(--traffic-down);
 }
 
-/* 分栏数值:上行大字号主视觉,截断兜底超长值。 */
+/* 分栏数值:上行大字号主视觉突出、下行小字号次级,同底基线紧凑排布。 */
 .overview-card-direction .overview-card-value {
   min-width: 0;
-  margin-top: auto;
   overflow: hidden;
-  font-size: 24px;
+  gap: 3px;
+  font-size: 28px;
   text-overflow: ellipsis;
 }
 
 .overview-card-direction .overview-card-unit {
-  font-size: 12px;
+  flex-shrink: 0;
+  font-size: 13px;
 }
 
-/* 下行是次级信息:头部标签与数值同步收档,单位也小一号。 */
-.overview-card-direction.is-down .overview-card-direction-head {
-  font-size: 10px;
-}
-
+/* 下行是次级信息:数值明显收档,单位也小一号。 */
 .overview-card-direction.is-down .overview-card-value {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
 }
 
 .overview-card-direction.is-down .overview-card-unit {
-  font-size: 10px;
+  flex-shrink: 0;
+  font-size: 11px;
 }
 
 /* 在线数量是首卡的辅助状态，略小于流量、带宽等核心指标。 */
@@ -856,6 +865,9 @@
   .overview-card-value {
     font-size: 24px;
   }
+
+  /* 实时带宽与今日流量分栏:这里不写死字号,让上方主 clamp(随视口缩放)生效,
+     保证箭头 + 数值 + 单位完整显示。 */
 
   .overview-card[data-metric="online"] .overview-card-value {
     font-size: 21px;
@@ -1174,17 +1186,7 @@
   gap: 5px;
 }
 
-.home-overview.is-dense .overview-card-direction .overview-card-value {
-  font-size: 20px;
-}
-
-.home-overview.is-dense .overview-card-direction.is-down .overview-card-value {
-  font-size: 12px;
-}
-
-.home-overview.is-dense .overview-card-direction .overview-card-unit {
-  font-size: 10px;
-}
+/* 密集档分栏字号交给主 clamp 随宽度自适应,这里不写死,保证单位完整显示。 */
 
 .home-overview.is-dense .overview-card-action {
   width: 22px;
