@@ -132,10 +132,11 @@ function localDateInputMax() {
 const OVERVIEW_RATING_LABEL_FIELDS: Array<{
   key: OverviewRatingKind;
   title: string;
-  toggleKey: "showTrafficRating" | "showBandwidthRating" | "showAssetRating";
+  toggleKey: "showTrafficRating" | "showBandwidthRating" | "showAssetRating" | "showTodayTrafficRating";
 }> = [
   { key: "traffic", title: "累计流量", toggleKey: "showTrafficRating" },
   { key: "bandwidth", title: "实时带宽", toggleKey: "showBandwidthRating" },
+  { key: "todayTraffic", title: "今日流量", toggleKey: "showTodayTrafficRating" },
   { key: "asset", title: "资产概览", toggleKey: "showAssetRating" },
 ];
 
@@ -300,14 +301,17 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     showTrafficRating: settings.showTrafficRating,
     showBandwidthRating: settings.showBandwidthRating,
     showAssetRating: settings.showAssetRating,
+    showTodayTrafficRating: settings.showTodayTrafficRating,
     trafficRatingLabels: settings.trafficRatingLabels,
     bandwidthRatingLabels: settings.bandwidthRatingLabels,
     assetRatingLabels: settings.assetRatingLabels,
+    todayTrafficRatingLabels: settings.todayTrafficRatingLabels,
     compactShowTrafficTotal: settings.compactShowTrafficTotal,
     compactShowBilling: settings.compactShowBilling,
     compactShowUptime: settings.compactShowUptime,
     showConnections: settings.showConnections,
     showTodayTrafficPopover: settings.showTodayTrafficPopover,
+    showTodayTrafficCard: settings.showTodayTrafficCard,
     hiddenNodes: settings.hiddenNodes,
     costIgnoredNodes: settings.costIgnoredNodes,
     // 按键排序:costPremiums 的键序随编辑历史漂移(删掉再加回同一键会排到最后),而 dirty /
@@ -345,6 +349,7 @@ type ThemeDraft = Omit<
   | "trafficRatingLabels"
   | "bandwidthRatingLabels"
   | "assetRatingLabels"
+  | "todayTrafficRatingLabels"
 > & {
   ratingLabels: Record<OverviewRatingKind, string>;
   hiddenNodesText: string;
@@ -359,6 +364,7 @@ function draftFromSettings(settings: ResolvedThemeSettings): ThemeDraft {
     trafficRatingLabels,
     bandwidthRatingLabels,
     assetRatingLabels,
+    todayTrafficRatingLabels,
     ...rest
   } = pickManagedThemeSettings(settings);
   return {
@@ -367,6 +373,7 @@ function draftFromSettings(settings: ResolvedThemeSettings): ThemeDraft {
       traffic: trafficRatingLabels,
       bandwidth: bandwidthRatingLabels,
       asset: assetRatingLabels,
+      todayTraffic: todayTrafficRatingLabels,
     },
     hiddenNodesText: hiddenNodes.join("\n"),
     costIgnoredText: costIgnoredNodes.join("\n"),
@@ -1100,6 +1107,7 @@ export function ThemeManage() {
       trafficRatingLabels: ratingLabels.traffic,
       bandwidthRatingLabels: ratingLabels.bandwidth,
       assetRatingLabels: ratingLabels.asset,
+      todayTrafficRatingLabels: ratingLabels.todayTraffic,
       hiddenNodes: normalizeNodeIdentityList(hiddenNodesText),
       costIgnoredNodes: normalizeCostIgnoredNodes(costIgnoredText),
       costPremiums: normalizeCostPremiums(rest.costPremiums),
@@ -1710,6 +1718,13 @@ export function ThemeManage() {
             onPatch={patch}
           />
           <ToggleRow
+            field="showTodayTrafficCard"
+            title="显示今日流量卡片"
+            desc="在顶部总览展示今日上行 / 下行累计流量（与今日流量统计同口径），点击右上角图标查看实例明细；总览关闭时跟随隐藏。"
+            checked={draft.showTodayTrafficCard}
+            onPatch={patch}
+          />
+          <ToggleRow
             field="showGroupTabs"
             title="显示分组筛选"
             desc="根据后端节点分组生成首页 Tab。"
@@ -1870,7 +1885,7 @@ export function ThemeManage() {
             </label>
           </div>
 
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
+          <div className="mt-3 grid gap-3 md:grid-cols-4">
             {OVERVIEW_RATING_LABEL_FIELDS.map((field) => {
               const defaultLabel = getDefaultOverviewRatingLabelText(field.key);
               const ratingEnabled = draft.showOverviewRatings && draft[field.toggleKey];

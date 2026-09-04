@@ -135,8 +135,14 @@
 
 .node-traffic-popover-link {
   flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: none;
   color: var(--progress-cpu);
+  font: inherit;
   font-weight: 650;
+  line-height: inherit;
+  cursor: pointer;
   transition: color 160ms ease;
 }
 

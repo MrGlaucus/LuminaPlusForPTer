@@ -1,4 +1,4 @@
-export type OverviewRatingKind = "traffic" | "bandwidth" | "asset";
+export type OverviewRatingKind = "traffic" | "bandwidth" | "asset" | "todayTraffic";
 
 export interface OverviewRating {
   level: 0 | 1 | 2 | 3;
@@ -12,6 +12,7 @@ const DEFAULT_LABELS: Record<OverviewRatingKind, readonly string[]> = {
   traffic: ["轻量", "常规", "重度", "海量"],
   bandwidth: ["闲置", "轻载", "活跃", "爆发"],
   asset: ["入门", "标准", "顶级", "富佬"],
+  todayTraffic: ["轻量", "常规", "重度", "海量"],
 };
 
 export function getDefaultOverviewRatingLabelText(kind: OverviewRatingKind) {
@@ -54,11 +55,13 @@ export function getOverviewRating({
       ? levelFromThresholds(value, [500, 1500, 3000])
       : kind === "traffic"
         ? levelFromThresholds(value, [500 * GB, 2000 * GB, 10000 * GB])
-        : levelFromThresholds(value, [
-            1 * MBPS_IN_BYTES_PER_SECOND,
-            10 * MBPS_IN_BYTES_PER_SECOND,
-            100 * MBPS_IN_BYTES_PER_SECOND,
-          ]);
+        : kind === "todayTraffic"
+          ? levelFromThresholds(value, [50 * GB, 500 * GB, 2000 * GB])
+          : levelFromThresholds(value, [
+              1 * MBPS_IN_BYTES_PER_SECOND,
+              10 * MBPS_IN_BYTES_PER_SECOND,
+              100 * MBPS_IN_BYTES_PER_SECOND,
+            ]);
 
   return {
     level,

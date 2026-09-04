@@ -137,14 +137,17 @@ export interface ThemeSettings {
   showTrafficRating?: boolean;
   showBandwidthRating?: boolean;
   showAssetRating?: boolean;
+  showTodayTrafficRating?: boolean;
   trafficRatingLabels?: string;
   bandwidthRatingLabels?: string;
   assetRatingLabels?: string;
+  todayTrafficRatingLabels?: string;
   compactShowTrafficTotal?: boolean;
   compactShowBilling?: boolean;
   compactShowUptime?: boolean;
   showConnections?: boolean;
   showTodayTrafficPopover?: boolean;
+  showTodayTrafficCard?: boolean;
   hiddenNodes?: string[];
   costIgnoredNodes?: string[];
   // 值支持旧版纯数字(自动升格)或 { amount, paidCny?, acquiredAt? } 条目,见 normalizeCostPremiums。

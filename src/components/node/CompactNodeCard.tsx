@@ -64,6 +64,7 @@ function CompactGauge({
   label,
   value,
   detail,
+  showDetail = false,
   color,
   fraction,
 }: {
@@ -71,6 +72,7 @@ function CompactGauge({
   label: string;
   value: string;
   detail?: string;
+  showDetail?: boolean;
   color: string;
   fraction: number;
 }) {
@@ -95,6 +97,9 @@ function CompactGauge({
         </span>
         <strong className="tabular">{value}</strong>
       </div>
+      {showDetail && detail && (
+        <span className="compact-node-gauge-detail">{detail}</span>
+      )}
       <div className="compact-node-gauge-track" aria-hidden />
     </div>
   );
@@ -408,6 +413,7 @@ function CompactNodeVitals({
         label="CPU"
         value={formatCompactPercent(node.cpuPct)}
         detail={`${node.cpu_cores || 0} 核`}
+        showDetail
         fraction={node.cpuPct / 100}
         color="var(--progress-cpu)"
       />
@@ -416,6 +422,7 @@ function CompactNodeVitals({
         label="内存"
         value={formatCompactPercent(node.ramPct)}
         detail={`${formatBytes(node.ramUsed)} / ${formatBytes(node.ramTotal)}`}
+        showDetail
         fraction={node.ramPct / 100}
         color="var(--progress-memory)"
       />
@@ -424,6 +431,7 @@ function CompactNodeVitals({
         label="磁盘"
         value={formatCompactPercent(node.diskPct)}
         detail={`${formatBytes(node.diskUsed)} / ${formatBytes(node.diskTotal)}`}
+        showDetail
         fraction={node.diskPct / 100}
         color="var(--progress-disk)"
       />
@@ -491,7 +499,7 @@ function CompactNodeInfoStrip({
       {showTrafficTotal && (
         <CompactInfoTile
           label="累计流量"
-          color="var(--text-primary)"
+          color="var(--traffic-up)"
         >
           <CompactInfoRow
             icon={(
@@ -502,6 +510,7 @@ function CompactNodeInfoStrip({
               />
             )}
             value={formatBytes(node.trafficUp)}
+            color="var(--traffic-up)"
           />
           <CompactInfoRow
             icon={(
@@ -512,6 +521,7 @@ function CompactNodeInfoStrip({
               />
             )}
             value={formatBytes(node.trafficDown)}
+            color="var(--traffic-down)"
           />
         </CompactInfoTile>
       )}

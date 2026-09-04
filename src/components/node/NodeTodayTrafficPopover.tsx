@@ -1,5 +1,7 @@
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useLayoutEffect,
   useReducer,
@@ -30,6 +32,15 @@ const VIEWPORT_PADDING = 8;
 const HOVER_CLOSE_DELAY_MS = 160;
 
 /**
+ * 由 NodeGrid 提供的「打开今日流量详情弹窗」回调,入参为触发入口的边界快照(用于
+ * 浮层锚定定位)。小弹窗的「明细」优先走弹窗而非跳转 /traffic 页面;无 Provider
+ * (独立使用)时回退为页面链接。
+ */
+export const TodayTrafficDialogContext = createContext<
+  ((anchorRect: DOMRect | null) => void) | null
+>(null);
+
+/**
  * 卡片上的「今日流量与峰值」入口：桌面悬浮、触屏点按，都通过 portal 渲染到
  * document.body，避免被卡片的 overflow:hidden 裁剪。数据只在弹层实际打开时激活，
  * 由 NodeGrid 的 TodayTrafficStatsProvider 按活跃节点分别查询并复用缓存。
@@ -44,6 +55,7 @@ export function NodeTodayTrafficPopover({
   const traffic = useNodeTodayTraffic(uuid);
   const trafficAvailable = traffic.available;
   const setTrafficActive = traffic.setActive;
+  const openTodayTrafficDialog = useContext(TodayTrafficDialogContext);
   const fineHover = useFineHover();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -118,6 +130,17 @@ export function NodeTodayTrafficPopover({
     dispatch({ type: "toggle-pin" });
     if (closingPinnedPopover) triggerRef.current?.blur();
   }, [cancelClose, state.pinned]);
+
+  // 明细入口:先收起小弹窗,再打开首页的今日流量详情浮层;锚点取小弹窗面板的边界
+  // 快照(关闭前读取),让大浮层出现在它旁边。
+  const handleOpenDetail = useCallback(() => {
+    if (!openTodayTrafficDialog) return;
+    const anchorRect = popoverRef.current?.getBoundingClientRect() ?? null;
+    cancelClose();
+    focusPopoverOnOpenRef.current = false;
+    dispatch({ type: "close-all" });
+    openTodayTrafficDialog(anchorRect);
+  }, [cancelClose, openTodayTrafficDialog]);
 
   useEffect(
     () => () => {
@@ -253,7 +276,10 @@ export function NodeTodayTrafficPopover({
             onPointerEnter={fineHover ? openOnHover : undefined}
             onPointerLeave={fineHover ? scheduleClose : undefined}
           >
-            <TodayTrafficPopoverBody traffic={traffic} />
+            <TodayTrafficPopoverBody
+              traffic={traffic}
+              onOpenDetail={openTodayTrafficDialog ? handleOpenDetail : undefined}
+            />
           </div>,
           document.body,
         )}
@@ -261,7 +287,13 @@ export function NodeTodayTrafficPopover({
   );
 }
 
-function TodayTrafficPopoverBody({ traffic }: { traffic: NodeTodayTrafficView }) {
+function TodayTrafficPopoverBody({
+  traffic,
+  onOpenDetail,
+}: {
+  traffic: NodeTodayTrafficView;
+  onOpenDetail?: () => void;
+}) {
   const {
     stat,
     isPending,
@@ -356,9 +388,19 @@ function TodayTrafficPopoverBody({ traffic }: { traffic: NodeTodayTrafficView })
           {source === "records" ? "按记录采样" : "按 5 分钟采样"} · 更新{" "}
           {formatClockTime(dataUpdatedAt)}
         </span>
-        <Link to="/traffic" className="node-traffic-popover-link">
-          明细
-        </Link>
+        {onOpenDetail ? (
+          <button
+            type="button"
+            className="node-traffic-popover-link"
+            onClick={onOpenDetail}
+          >
+            明细
+          </button>
+        ) : (
+          <Link to="/traffic" className="node-traffic-popover-link">
+            明细
+          </Link>
+        )}
       </div>
     </>
   );

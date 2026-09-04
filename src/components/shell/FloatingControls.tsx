@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { AlertTriangle, ChevronLeft, ChevronRight, Grid3x3, LayoutGrid, List, Monitor, Palette, Rows3, Settings, SlidersHorizontal, Sun, Moon } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, Grid3x3, LayoutGrid, List, Monitor, Palette, RefreshCw, Rows3, Settings, SlidersHorizontal, Sun, Moon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useViewMode } from "@/hooks/useViewMode";
@@ -31,6 +31,12 @@ const APPEARANCE_OPTIONS = [
   { value: "dark", icon: Moon, label: "深色" },
 ] as const;
 
+const APPEARANCE_NEXT: Record<string, (typeof APPEARANCE_OPTIONS)[number]> = {
+  light: APPEARANCE_OPTIONS[1],
+  system: APPEARANCE_OPTIONS[2],
+  dark: APPEARANCE_OPTIONS[0],
+};
+
 export function FloatingControls({
   onExpandedChange,
 }: {
@@ -54,6 +60,9 @@ export function FloatingControls({
   const showSyncWarning = failureStreak >= 2;
   const hiddenTabIndex = collapsed ? -1 : undefined;
   const ToggleIcon = collapsed ? ChevronLeft : ChevronRight;
+  const currentAppearance = APPEARANCE_OPTIONS.find((o) => o.value === appearance) ?? APPEARANCE_OPTIONS[1];
+  const CurrentAppearanceIcon = currentAppearance.icon;
+  const nextAppearance = APPEARANCE_NEXT[appearance] ?? APPEARANCE_OPTIONS[1];
   const ViewIcon = VIEW_MODE_META[nextMode].icon;
   // 只要不在最宽松的大卡默认态,就视为"已切换"，按钮保持高亮。
   const isReducedView = mode !== "large";
@@ -88,23 +97,16 @@ export function FloatingControls({
                   role="group"
                   aria-label="外观选择"
                 >
-                  {APPEARANCE_OPTIONS.map(({ value, icon: Icon, label }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setAppearance(value)}
-                      aria-label={label}
-                      aria-pressed={appearance === value}
-                      title={label}
-                      tabIndex={hiddenTabIndex}
-                      className={clsx(
-                        "control-button grid h-9 w-9 place-items-center",
-                        appearance === value && "control-toggle is-active",
-                      )}
-                    >
-                      <Icon size={16} />
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setAppearance(nextAppearance.value)}
+                    aria-label={`外观：${currentAppearance.label}，点击切换到${nextAppearance.label}`}
+                    title={`当前：${currentAppearance.label} · 点击切换`}
+                    tabIndex={hiddenTabIndex}
+                    className="control-button grid h-9 w-9 place-items-center control-toggle is-active"
+                  >
+                    <CurrentAppearanceIcon size={16} />
+                  </button>
                 </div>
                 <button
                   type="button"
@@ -163,6 +165,16 @@ export function FloatingControls({
                 <Settings size={16} />
               </a>
             )}
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              aria-label="刷新页面"
+              title="刷新页面"
+              tabIndex={hiddenTabIndex}
+              className="control-button grid h-9 w-9 place-items-center"
+            >
+              <RefreshCw size={16} />
+            </button>
           </div>
           <button
             type="button"

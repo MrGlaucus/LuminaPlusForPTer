@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircleDollarSign } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowDown, ArrowUp, BarChart3, CircleDollarSign } from "lucide-react";
 import { Flag } from "@/components/ui/Flag";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -21,7 +21,6 @@ import {
 } from "@/utils/format";
 import { calculateCostSummary, formatCnyMoney, getExchangeRates } from "@/utils/cost";
 import { useHiddenNodeUuids } from "@/hooks/useVisibleNodes";
-import { speedRateColor } from "@/utils/metricTone";
 import {
   getHomeGroupLabel,
   getHomeGroupOptions,
@@ -34,12 +33,13 @@ import {
 import { getDisplayRegionCode } from "@/utils/geo";
 import { useHomeSort } from "@/hooks/useHomeSort";
 import { useHomeNodeOrder } from "@/hooks/useHomeNodeOrder";
-import { useHourlyClock } from "@/hooks/useClock";
+import { useHourlyClock, useMinuteClock } from "@/hooks/useClock";
 import { preloadAssetsPage } from "@/services/assetsPageLoader";
 import {
-  preloadTodayTrafficStats,
   TodayTrafficStatsProvider,
+  useTodayTrafficStats,
 } from "@/hooks/useTodayTrafficStats";
+import { TodayTrafficDialog } from "@/components/traffic/TodayTrafficDialog";
 import { HomeSortControl } from "./HomeSortControl";
 import {
   getOverviewRating,
@@ -49,6 +49,7 @@ import { CompactNodeCard } from "./CompactNodeCard";
 import { MiniNodeCard } from "./MiniNodeCard";
 import { NodeCard } from "./NodeCard";
 import { NodeListView } from "./NodeListView";
+import { TodayTrafficDialogContext } from "./NodeTodayTrafficPopover";
 import { RenewalReminder } from "./RenewalReminder";
 import type { NodeViewMode } from "@/utils/themeSettings";
 import type { RenewalReminderSource } from "@/utils/renewalReminder";
@@ -87,21 +88,12 @@ function formatCompactBytes(value: number): string {
   return `${amount}${unit[0]}`;
 }
 
-function TrafficBarsIcon({ size = 19 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 20 20"
-      fill="none"
-      aria-hidden
-    >
-      <rect x="2" y="10" width="4" height="8" rx="1.2" fill="currentColor" />
-      <rect x="8" y="5.5" width="4" height="12.5" rx="1.2" fill="currentColor" />
-      <rect x="14" y="2" width="4" height="16" rx="1.2" fill="currentColor" />
-    </svg>
-  );
-}
+// 今日流量卡「统计至」时间，与统计页同格式。
+const TODAY_TIME_FORMATTER = new Intl.DateTimeFormat("zh-CN", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
 
 // 站点铭牌由 CSS 放进 AppShell 顶部留白，不占概览卡内容流。
 function HomeBrand({ siteName }: { siteName: string }) {
@@ -122,13 +114,17 @@ function HomeOverviewCards({
   showTrafficRating,
   showBandwidthRating,
   showAssetRating,
+  showTodayTrafficRating,
   trafficRatingLabels,
   bandwidthRatingLabels,
   assetRatingLabels,
+  todayTrafficRatingLabels,
   showDetailButton,
   renewalNodes,
+  showTodayTrafficCard,
+  todayTrafficUuids,
+  onOpenTodayTraffic,
   dense,
-  onWarmTraffic,
 }: {
   overview: HomeOverview;
   costSummary: { remainingCny: number } | null;
@@ -138,17 +134,25 @@ function HomeOverviewCards({
   showTrafficRating: boolean;
   showBandwidthRating: boolean;
   showAssetRating: boolean;
+  showTodayTrafficRating: boolean;
   trafficRatingLabels: string;
   bandwidthRatingLabels: string;
   assetRatingLabels: string;
+  todayTrafficRatingLabels: string;
   showDetailButton: boolean;
   renewalNodes: RenewalReminderSource[];
-  onWarmTraffic: () => void;
+  showTodayTrafficCard: boolean;
+  todayTrafficUuids: string[];
+  onOpenTodayTraffic: (anchorRect: DOMRect) => void;
 }) {
   const [trafficValue, trafficUnit] = formatBytes(
     overview.trafficUp + overview.trafficDown,
   ).split(" ");
-  const rate = formatByteRate(overview.netUp + overview.netDown);
+  // 带宽卡与今日流量卡同为左右分栏:上行大字号主视觉,下行小字号次级;评级以上行为准。
+  const upRate = formatByteRate(overview.netUp);
+  const downRate = formatByteRate(overview.netDown);
+  const bandwidthDetailLabel = `上行 ${formatByteRateLabel(overview.netUp)} · 下行 ${formatByteRateLabel(overview.netDown)}`;
+  const downRateLabel = formatByteRateLabel(overview.netDown);
   const onlinePct =
     overview.totalNodes > 0 ? (overview.onlineNodes / overview.totalNodes) * 100 : 0;
   const offlinePct =
@@ -160,8 +164,6 @@ function HomeOverviewCards({
       : "—";
   const trafficDetailLabel = `↑ ${formatBytes(overview.trafficUp)} · ↓ ${formatBytes(overview.trafficDown)}`;
   const trafficCompactLabel = `↑${formatCompactBytes(overview.trafficUp)} ↓${formatCompactBytes(overview.trafficDown)}`;
-  const bandwidthDetailLabel = `↑ ${formatByteRateLabel(overview.netUp)} · ↓ ${formatByteRateLabel(overview.netDown)}`;
-  const bandwidthCompactLabel = `↑${formatCompactBytes(overview.netUp)} ↓${formatCompactBytes(overview.netDown)}`;
   const trafficRating =
     showOverviewRatings && showTrafficRating
       ? getOverviewRating({
@@ -174,7 +176,7 @@ function HomeOverviewCards({
     showOverviewRatings && showBandwidthRating
       ? getOverviewRating({
           kind: "bandwidth",
-          value: overview.netUp + overview.netDown,
+          value: overview.netUp,
           customLabels: bandwidthRatingLabels,
         })
       : null;
@@ -187,6 +189,47 @@ function HomeOverviewCards({
         })
       : null;
 
+  // 今日流量卡与统计页同口径:只汇总有历史采样的节点,避免把「无数据」节点当 0 参与展示。
+  // 卡片开关关闭时传空列表让查询直接禁用(enabled 为 false)。
+  const todayNow = useMinuteClock();
+  const todayTrafficQuery = useTodayTrafficStats(
+    showTodayTrafficCard ? todayTrafficUuids : [],
+    todayNow,
+  );
+  const todayTrafficSummary = useMemo(() => {
+    const rows = todayTrafficQuery.data?.rows ?? [];
+    let up = 0;
+    let down = 0;
+    let sampled = 0;
+    for (const row of rows) {
+      if (!row.hasSamples) continue;
+      up += row.trafficUp;
+      down += row.trafficDown;
+      sampled += 1;
+    }
+    return sampled > 0 ? { up, down } : null;
+  }, [todayTrafficQuery.data?.rows]);
+  const [todayUpValue, todayUpUnit] = todayTrafficSummary
+    ? formatBytes(todayTrafficSummary.up).split(" ")
+    : ["—", ""];
+  const [todayDownValue, todayDownUnit] = todayTrafficSummary
+    ? formatBytes(todayTrafficSummary.down).split(" ")
+    : ["—", ""];
+  const todayTrafficCaption = todayTrafficQuery.isPending
+    ? "加载今日数据…"
+    : todayTrafficQuery.isError
+      ? "获取失败，稍后重试"
+      : `统计至 ${TODAY_TIME_FORMATTER.format(todayTrafficQuery.data?.rangeEndMs ?? todayNow)}`;
+  // 今日流量评级仅按上行单日量计(50G/500G/2T),与卡片上行主视觉一致;无采样时不显示。
+  const todayTrafficRating =
+    showOverviewRatings && showTodayTrafficRating && todayTrafficSummary
+      ? getOverviewRating({
+          kind: "todayTraffic",
+          value: todayTrafficSummary.up,
+          customLabels: todayTrafficRatingLabels,
+        })
+      : null;
+
   const renderRating = (rating: OverviewRating | null) =>
     rating ? (
       <span className="overview-card-rating" data-rating-level={rating.level} title={rating.label}>
@@ -195,7 +238,10 @@ function HomeOverviewCards({
     ) : null;
 
   return (
-    <section className={`home-overview${dense ? " is-dense" : ""}`} aria-label="首页总览">
+    <section
+      className={`home-overview${dense ? " is-dense" : ""}${showTodayTrafficCard ? " has-today-traffic" : ""}`}
+      aria-label="首页总览"
+    >
       <article className="overview-card" data-metric="online">
         <span className="overview-card-label">在线节点</span>
         <div className="overview-card-main">
@@ -228,20 +274,32 @@ function HomeOverviewCards({
 
       <article className="overview-card" data-metric="bandwidth">
         <span className="overview-card-label">实时带宽</span>
-        <div className="overview-card-main">
-          <p
-            className="overview-card-value"
-            style={{ color: speedRateColor(rate.unit) }}
-          >
-            {rate.value}
-            <span className="overview-card-unit">{rate.unit}</span>
-          </p>
+        <div className="overview-card-main overview-card-main-split">
+          <div className="overview-card-direction is-up">
+            <span className="overview-card-direction-head">
+              <ArrowUp strokeWidth={2.4} aria-hidden />
+              上行
+            </span>
+            <p
+              className="overview-card-value"
+              title={bandwidthDetailLabel}
+            >
+              {upRate.value}
+              <span className="overview-card-unit">{upRate.unit}</span>
+            </p>
+          </div>
+          <div className="overview-card-direction is-down">
+            <span className="overview-card-direction-head">
+              <ArrowDown strokeWidth={2.4} aria-hidden />
+              下行
+            </span>
+            <p className="overview-card-value" title={`下行速率 ${downRateLabel}`}>
+              {downRate.value}
+              <span className="overview-card-unit">{downRate.unit}</span>
+            </p>
+          </div>
         </div>
         <div className="overview-card-footer">
-          <p className="overview-card-sub" title={bandwidthDetailLabel}>
-            <span className="overview-card-sub-full">{bandwidthDetailLabel}</span>
-            <span className="overview-card-sub-compact">{bandwidthCompactLabel}</span>
-          </p>
           {renderRating(bandwidthRating)}
         </div>
       </article>
@@ -249,17 +307,6 @@ function HomeOverviewCards({
       <article className="overview-card" data-metric="traffic">
         <div className="overview-card-head">
           <span className="overview-card-label">累计流量</span>
-          <Link
-            to="/traffic"
-            className="overview-card-action"
-            aria-label="打开今日流量统计页"
-            title="今日流量统计"
-            onPointerEnter={onWarmTraffic}
-            onFocus={onWarmTraffic}
-            onClick={onWarmTraffic}
-          >
-            <TrafficBarsIcon />
-          </Link>
         </div>
         <div className="overview-card-main">
           <p className="overview-card-value">
@@ -275,6 +322,49 @@ function HomeOverviewCards({
           {renderRating(trafficRating)}
         </div>
       </article>
+
+      {showTodayTrafficCard && (
+        <article className="overview-card" data-metric="today-traffic">
+          <div className="overview-card-head">
+            <span className="overview-card-label">今日流量</span>
+            <button
+              type="button"
+              className="overview-card-action"
+              aria-label="打开今日流量详情"
+              title="今日流量详情"
+              onClick={(event) => onOpenTodayTraffic(event.currentTarget.getBoundingClientRect())}
+            >
+              <BarChart3 size={16} />
+            </button>
+          </div>
+          <div className="overview-card-main overview-card-main-split">
+            <div className="overview-card-direction is-up">
+              <span className="overview-card-direction-head">
+                <ArrowUp strokeWidth={2.4} aria-hidden />
+                上行
+              </span>
+              <p className="overview-card-value">
+                {todayUpValue}
+                <span className="overview-card-unit">{todayUpUnit}</span>
+              </p>
+            </div>
+            <div className="overview-card-direction is-down">
+              <span className="overview-card-direction-head">
+                <ArrowDown strokeWidth={2.4} aria-hidden />
+                下行
+              </span>
+              <p className="overview-card-value">
+                {todayDownValue}
+                <span className="overview-card-unit">{todayDownUnit}</span>
+              </p>
+            </div>
+          </div>
+          <div className="overview-card-footer">
+            <p className="overview-card-caption">{todayTrafficCaption}</p>
+            {renderRating(todayTrafficRating)}
+          </div>
+        </article>
+      )}
 
       <article className="overview-card" data-metric="asset">
         <div className="overview-card-head">
@@ -367,7 +457,6 @@ function RegionTabs({
 
 export function NodeGrid() {
   const now = useHourlyClock();
-  const queryClient = useQueryClient();
   const nodes = useHomeNodeSummaries();
   const nodeOnlineSummaries = useNodeOnlineSummaries();
   const allMeta = useAllNodeMeta();
@@ -384,6 +473,8 @@ export function NodeGrid() {
   const sortDirection = sortEnabled ? sort.direction : themeSettings.homeSortDirection;
   const [selectedGroup, setSelectedGroup] = useState(HOME_ALL_GROUP);
   const [selectedRegion, setSelectedRegion] = useState(HOME_ALL_REGION);
+  const [todayTrafficDialogOpen, setTodayTrafficDialogOpen] = useState(false);
+  const [todayTrafficAnchorRect, setTodayTrafficAnchorRect] = useState<DOMRect | null>(null);
   useHomepagePingOverview(mode);
 
   // 摘要不含名称，先从完整 meta 解析主题隐藏列表，再统一过滤各类数据。
@@ -416,9 +507,12 @@ export function NodeGrid() {
     () => visibleMeta.map((node) => node.uuid),
     [visibleMeta],
   );
-  const warmTrafficPage = useCallback(() => {
-    void preloadTodayTrafficStats(queryClient, trafficUuids, Date.now());
-  }, [queryClient, trafficUuids]);
+  // 弹窗回调保持引用稳定,避免轮询重渲染反复重绑 Escape/滚动锁。
+  const openTodayTrafficDialog = useCallback((anchorRect: DOMRect | null = null) => {
+    setTodayTrafficAnchorRect(anchorRect);
+    setTodayTrafficDialogOpen(true);
+  }, []);
+  const closeTodayTrafficDialog = useCallback(() => setTodayTrafficDialogOpen(false), []);
   // 「名称」排序需要展示名(摘要无 name),从 meta 注入。
   const nameByUuid = useMemo(() => {
     const map = new Map<string, string>();
@@ -454,6 +548,9 @@ export function NodeGrid() {
   const showHomeOverview = themeSettings.isReady && themeSettings.showHomeOverview;
   const showTrafficPopover = themeSettings.isReady && themeSettings.showTodayTrafficPopover;
   const hasNodes = visibleMeta.length > 0;
+  // 今日流量卡跟随总览区渲染;无节点时不展示(空查询无意义)。
+  const showTodayTrafficCard =
+    showHomeOverview && themeSettings.showTodayTrafficCard && hasNodes;
   // 卡内入口与悬浮入口互斥，避免重复操作入口。
   const showAssetCard = showHomeOverview && hasNodes;
   const showCostDetailButton =
@@ -634,6 +731,12 @@ export function NodeGrid() {
       {cards}
     </div>
   );
+  // 小弹窗「明细」优先打开弹窗而非跳转 /traffic 页面。
+  const gridWithDialogContext = (
+    <TodayTrafficDialogContext.Provider value={openTodayTrafficDialog}>
+      {gridElement}
+    </TodayTrafficDialogContext.Provider>
+  );
   // 迷你与列表档的控件栏借用小卡列宽，避免跟随密集内容列而被压窄。
   const borrowControlsGrid = isMini || isList;
   const controlsWrapClassName = borrowControlsGrid
@@ -686,12 +789,21 @@ export function NodeGrid() {
           showTrafficRating={themeSettings.showTrafficRating}
           showBandwidthRating={themeSettings.showBandwidthRating}
           showAssetRating={themeSettings.showAssetRating}
+          showTodayTrafficRating={themeSettings.showTodayTrafficRating}
           trafficRatingLabels={themeSettings.trafficRatingLabels}
           bandwidthRatingLabels={themeSettings.bandwidthRatingLabels}
           assetRatingLabels={themeSettings.assetRatingLabels}
-          onWarmTraffic={warmTrafficPage}
+          todayTrafficRatingLabels={themeSettings.todayTrafficRatingLabels}
+          showTodayTrafficCard={showTodayTrafficCard}
+          todayTrafficUuids={trafficUuids}
+          onOpenTodayTraffic={openTodayTrafficDialog}
         />
       )}
+      <TodayTrafficDialog
+        open={todayTrafficDialogOpen}
+        onClose={closeTodayTrafficDialog}
+        anchorRect={todayTrafficAnchorRect}
+      />
     </>
   );
 
@@ -734,7 +846,7 @@ export function NodeGrid() {
         <NodeListView uuids={orderedUuids} />
       ) : showTrafficPopover ? (
         <TodayTrafficStatsProvider uuids={trafficUuids}>
-          {gridElement}
+          {gridWithDialogContext}
         </TodayTrafficStatsProvider>
       ) : (
         gridElement
