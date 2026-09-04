@@ -122,6 +122,7 @@ function HomeOverviewCards({
   showDetailButton,
   renewalNodes,
   showTodayTrafficCard,
+  showTrafficCard,
   todayTrafficUuids,
   onOpenTodayTraffic,
   dense,
@@ -142,6 +143,7 @@ function HomeOverviewCards({
   showDetailButton: boolean;
   renewalNodes: RenewalReminderSource[];
   showTodayTrafficCard: boolean;
+  showTrafficCard: boolean;
   todayTrafficUuids: string[];
   onOpenTodayTraffic: (anchorRect: DOMRect) => void;
 }) {
@@ -237,9 +239,14 @@ function HomeOverviewCards({
       </span>
     ) : null;
 
+  // 总览列数跟随可见卡数:在线/带宽/资产三张基础卡 + 可选的累计流量卡与今日流量卡,
+  // 关闭任一可选卡时不留下空列。
+  const cardCount = 3 + (showTrafficCard ? 1 : 0) + (showTodayTrafficCard ? 1 : 0);
+
   return (
     <section
-      className={`home-overview${dense ? " is-dense" : ""}${showTodayTrafficCard ? " has-today-traffic" : ""}`}
+      className={`home-overview${dense ? " is-dense" : ""}`}
+      data-card-count={cardCount}
       aria-label="首页总览"
     >
       <article className="overview-card" data-metric="online">
@@ -304,24 +311,26 @@ function HomeOverviewCards({
         </div>
       </article>
 
-      <article className="overview-card" data-metric="traffic">
-        <div className="overview-card-head">
-          <span className="overview-card-label">累计流量</span>
-        </div>
-        <div className="overview-card-main">
-          <p className="overview-card-value">
-            {trafficValue}
-            <span className="overview-card-unit">{trafficUnit}</span>
-          </p>
-        </div>
-        <div className="overview-card-footer">
-          <p className="overview-card-sub" title={trafficDetailLabel}>
-            <span className="overview-card-sub-full">{trafficDetailLabel}</span>
-            <span className="overview-card-sub-compact">{trafficCompactLabel}</span>
-          </p>
-          {renderRating(trafficRating)}
-        </div>
-      </article>
+      {showTrafficCard && (
+        <article className="overview-card" data-metric="traffic">
+          <div className="overview-card-head">
+            <span className="overview-card-label">累计流量</span>
+          </div>
+          <div className="overview-card-main">
+            <p className="overview-card-value">
+              {trafficValue}
+              <span className="overview-card-unit">{trafficUnit}</span>
+            </p>
+          </div>
+          <div className="overview-card-footer">
+            <p className="overview-card-sub" title={trafficDetailLabel}>
+              <span className="overview-card-sub-full">{trafficDetailLabel}</span>
+              <span className="overview-card-sub-compact">{trafficCompactLabel}</span>
+            </p>
+            {renderRating(trafficRating)}
+          </div>
+        </article>
+      )}
 
       {showTodayTrafficCard && (
         <article className="overview-card" data-metric="today-traffic">
@@ -551,6 +560,8 @@ export function NodeGrid() {
   // 今日流量卡跟随总览区渲染;无节点时不展示(空查询无意义)。
   const showTodayTrafficCard =
     showHomeOverview && themeSettings.showTodayTrafficCard && hasNodes;
+  // 累计流量卡同样跟随总览区;默认关闭,需在主题设置显式开启。
+  const showTrafficCard = showHomeOverview && themeSettings.showTrafficCard && hasNodes;
   // 卡内入口与悬浮入口互斥，避免重复操作入口。
   const showAssetCard = showHomeOverview && hasNodes;
   const showCostDetailButton =
@@ -795,6 +806,7 @@ export function NodeGrid() {
           assetRatingLabels={themeSettings.assetRatingLabels}
           todayTrafficRatingLabels={themeSettings.todayTrafficRatingLabels}
           showTodayTrafficCard={showTodayTrafficCard}
+          showTrafficCard={showTrafficCard}
           todayTrafficUuids={trafficUuids}
           onOpenTodayTraffic={openTodayTrafficDialog}
         />

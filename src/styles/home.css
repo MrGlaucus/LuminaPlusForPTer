@@ -817,14 +817,19 @@
   color: var(--text-primary);
 }
 
-/* 今日流量卡启用时总览共 5 张卡,宽屏一行 5 列;略早于默认断点降为 2 列,
-   避免 1100–1440px 区间每卡被压窄到不足 200px。 */
-.home-overview.has-today-traffic {
+/* 总览列数跟随可见卡数(在线/带宽/资产三张基础卡 + 可选的累计流量与今日流量卡),
+   由 data-card-count 控制,关闭可选卡时不留下空列;无属性时默认 4 列。 */
+.home-overview[data-card-count="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.home-overview[data-card-count="5"] {
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
+/* 5 张卡时略早于默认断点降为 2 列,避免 1100–1440px 区间每卡被压窄到不足 200px。 */
 @media (max-width: 1280px) {
-  .home-overview.has-today-traffic {
+  .home-overview[data-card-count="5"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

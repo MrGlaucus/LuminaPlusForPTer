@@ -312,6 +312,7 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     showConnections: settings.showConnections,
     showTodayTrafficPopover: settings.showTodayTrafficPopover,
     showTodayTrafficCard: settings.showTodayTrafficCard,
+    showTrafficCard: settings.showTrafficCard,
     hiddenNodes: settings.hiddenNodes,
     costIgnoredNodes: settings.costIgnoredNodes,
     // 按键排序:costPremiums 的键序随编辑历史漂移(删掉再加回同一键会排到最后),而 dirty /
@@ -1722,6 +1723,13 @@ export function ThemeManage() {
             title="显示今日流量卡片"
             desc="在顶部总览展示今日上行 / 下行累计流量（与今日流量统计同口径），点击右上角图标查看实例明细；总览关闭时跟随隐藏。"
             checked={draft.showTodayTrafficCard}
+            onPatch={patch}
+          />
+          <ToggleRow
+            field="showTrafficCard"
+            title="显示累计流量卡片"
+            desc="在顶部总览展示所有节点的累计上行 / 下行流量；总览关闭时跟随隐藏。默认关闭。"
+            checked={draft.showTrafficCard}
             onPatch={patch}
           />
           <ToggleRow

@@ -75,6 +75,7 @@ export interface ResolvedThemeSettings {
   showConnections: boolean;
   showTodayTrafficPopover: boolean;
   showTodayTrafficCard: boolean;
+  showTrafficCard: boolean;
   hiddenNodes: string[];
   costIgnoredNodes: string[];
   costPremiums: Record<string, CostPremiumEntry>;
@@ -128,6 +129,8 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
   showConnections: false,
   showTodayTrafficPopover: true,
   showTodayTrafficCard: true,
+  // 默认关闭(需手动开启):累计流量与实时带宽在总览区并列,默认只保留带宽卡。
+  showTrafficCard: false,
   hiddenNodes: [],
   costIgnoredNodes: [],
   costPremiums: {},
@@ -285,6 +288,8 @@ export function normalizeThemeSettings(
     showConnections: settings?.showConnections === true,
     showTodayTrafficPopover: enabledUnlessFalse(settings?.showTodayTrafficPopover),
     showTodayTrafficCard: enabledUnlessFalse(settings?.showTodayTrafficCard),
+    // 默认关闭(需手动开启):与连接数同理,总览卡只在显式启用时才显示。
+    showTrafficCard: settings?.showTrafficCard === true,
     hiddenNodes: normalizeNodeIdentityList(settings?.hiddenNodes),
     costIgnoredNodes: normalizeCostIgnoredNodes(settings?.costIgnoredNodes),
     costPremiums: normalizeCostPremiums(settings?.costPremiums),

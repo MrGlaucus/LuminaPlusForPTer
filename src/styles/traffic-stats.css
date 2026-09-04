@@ -496,7 +496,7 @@
 }
 
 /* 首页「今日流量」详情浮层:内容与统计页共用,只调整容器与头部。
-   锚定在触发入口旁(JS 计算 top/left),不遮满全屏。 */
+   桌面锚定在触发入口旁(JS 计算 top/left),不遮满全屏。 */
 .traffic-dialog-panel {
   position: fixed;
   z-index: 100;
@@ -513,9 +513,22 @@
   color: var(--text-primary);
 }
 
+/* 移动端与资产概览续费浮层一致从底部弹出:左右撑满、贴底 12px,高度比其更高。 */
+.traffic-dialog-panel.is-mobile {
+  top: auto;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  width: auto;
+  max-height: min(85dvh, 900px);
+  border-radius: 20px;
+}
+
 .traffic-dialog-content {
   min-height: 0;
   overflow-y: auto;
+  /* 内容滚动到边界时不把滚动链传给页面,配合 body 锁避免背景跟着动。 */
+  overscroll-behavior: contain;
   padding: 18px 22px 22px;
 }
 

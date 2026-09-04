@@ -28,8 +28,8 @@ const TIME_FORMATTER = new Intl.DateTimeFormat("zh-CN", {
   minute: "2-digit",
   hour12: false,
 });
-// 与 traffic-stats.css 的表格/卡片切换断点保持一致。
-const TRAFFIC_MOBILE_QUERY = "(max-width: 720px)";
+// 与 traffic-stats.css 的表格/卡片切换断点保持一致;弹窗浮层复用同一断点做贴底样式。
+export const TRAFFIC_MOBILE_QUERY = "(max-width: 720px)";
 
 const TrafficRateChart = lazy(() =>
   import("@/components/traffic/TrafficRateChart").then((module) => ({
