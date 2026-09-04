@@ -528,15 +528,14 @@
   letter-spacing: 0;
 }
 
-/* 实时带宽与今日流量卡:上行/下行紧凑挨在一起排于同一行底部基线,上行大字号突出、下行小字号次级,
+/* 实时带宽与今日流量卡:上行/下行分两行纵向排列,上行大字号主行突出、下行小字号次级,
    方向色贯穿小标与数值(带宽卡上行数值保留热力色 inline 覆盖)。 */
 .overview-card-main-split {
-  /* 覆写 .overview-card-main 的 space-between,让两字段紧挨而非分居两端。 */
+  /* 覆写 .overview-card-main 的 space-between,让两字段纵向堆叠而非分居两端。 */
   justify-content: flex-start;
-  align-items: flex-end;
-  /* 预留右侧安全边距,避免单位数值紧贴卡片右缘。 */
-  padding-right: 10px;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .overview-card-direction {
@@ -544,14 +543,8 @@
   min-width: 0;
   flex: 0 0 auto;
   flex-direction: column;
-  /* 值底色(数字与单位)贴底对齐,两列视觉基线一致。 */
   justify-content: flex-end;
   gap: 0;
-}
-
-/* 上行保持主视觉地位,不做拉伸。 */
-.overview-card-direction.is-up {
-  flex-grow: 0;
 }
 
 /* 方向图标内联到数值前:作为上行/下行的小标记,明显小于数值。
@@ -572,7 +565,7 @@
   color: var(--traffic-down);
 }
 
-/* 分栏数值:上行大字号主视觉突出、下行小字号次级,同底基线紧凑排布。 */
+/* 上行主行:大字号突出;下行次级:小字号。两端留白,单位完整显示。 */
 .overview-card-direction .overview-card-value {
   min-width: 0;
   overflow: hidden;
