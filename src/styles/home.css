@@ -534,6 +534,8 @@
   /* 覆写 .overview-card-main 的 space-between,让两字段紧挨而非分居两端。 */
   justify-content: flex-start;
   align-items: flex-end;
+  /* 预留右侧安全边距,避免单位数值紧贴卡片右缘。 */
+  padding-right: 10px;
   gap: 8px;
 }
 
@@ -552,12 +554,12 @@
   flex-grow: 0;
 }
 
-/* 方向图标内联到数值前:作为上行/下行的小标记,明显小于数值。 */
+/* 方向图标内联到数值前:作为上行/下行的小标记,明显小于数值。
+   与数字同用 baseline 对齐,保证箭头与文字底部基线一致。 */
 .overview-card-direction-icon {
   width: 0.5em;
   height: 0.5em;
   flex-shrink: 0;
-  align-self: center;
 }
 
 .overview-card-direction.is-up .overview-card-value,
@@ -633,6 +635,16 @@
 /* 带宽卡 footer 只剩评级,保持右上角的既有位置感。 */
 .overview-card[data-metric="bandwidth"] .overview-card-footer {
   justify-content: flex-end;
+}
+
+/* 今日流量卡 footer 也只剩评级,与带宽卡一致,评级贴右下角。 */
+.overview-card[data-metric="today-traffic"] .overview-card-footer {
+  justify-content: flex-end;
+}
+
+/* 今日流量卡头部右侧「统计至」:不被 flex 撑满,按内容宽贴右显示。 */
+.overview-card[data-metric="today-traffic"] .overview-card-head .overview-card-caption {
+  flex: 0 0 auto;
 }
 
 /* 底部小字说明(如资产卡的「实时汇率计算」)。 */
