@@ -1193,7 +1193,22 @@
   gap: 5px;
 }
 
-/* 密集档分栏字号交给主 clamp 随宽度自适应,这里不写死,保证单位完整显示。 */
+/* 密集档分栏字号:随主方向卡(上行大/下行小)缩放,复现一大一小的对比。 */
+.home-overview.is-dense .overview-card-direction .overview-card-value {
+  font-size: 24px;
+}
+
+.home-overview.is-dense .overview-card-direction.is-down .overview-card-value {
+  font-size: 14px;
+}
+
+.home-overview.is-dense .overview-card-direction .overview-card-unit {
+  font-size: 11px;
+}
+
+.home-overview.is-dense .overview-card-direction.is-down .overview-card-unit {
+  font-size: 10px;
+}
 
 .home-overview.is-dense .overview-card-action {
   width: 22px;
