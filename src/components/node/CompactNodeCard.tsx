@@ -413,9 +413,16 @@ function CompactNodeVitals({
         label="CPU"
         value={formatCompactPercent(node.cpuPct)}
         detail={`${node.cpu_cores || 0} 核`}
-        showDetail
         fraction={node.cpuPct / 100}
         color="var(--progress-cpu)"
+      />
+      <CompactGauge
+        icon={<Gauge size={12} />}
+        label="负载"
+        value={node.load1.toFixed(2)}
+        detail={`${node.load5.toFixed(2)} / ${node.load15.toFixed(2)}`}
+        fraction={loadFraction}
+        color="var(--progress-load)"
       />
       <CompactGauge
         icon={<MemoryStick size={12} />}
@@ -434,14 +441,6 @@ function CompactNodeVitals({
         showDetail
         fraction={node.diskPct / 100}
         color="var(--progress-disk)"
-      />
-      <CompactGauge
-        icon={<Gauge size={12} />}
-        label="负载"
-        value={node.load1.toFixed(2)}
-        detail={`${node.load5.toFixed(2)} / ${node.load15.toFixed(2)}`}
-        fraction={loadFraction}
-        color="var(--progress-load)"
       />
     </div>
   );

@@ -164,6 +164,13 @@ function MiniVitals({
         paint="var(--progress-cpu)"
       />
       <MiniMetricBar
+        icon={<Gauge size={12} strokeWidth={2} />}
+        label="负载"
+        valueText={node.load1.toFixed(2)}
+        fraction={loadFraction}
+        paint="var(--progress-load)"
+      />
+      <MiniMetricBar
         icon={<MemoryStick size={12} strokeWidth={2} />}
         label="内存"
         valueText={node.ramPct.toFixed(node.ramPct >= 10 ? 0 : 1)}
@@ -178,13 +185,6 @@ function MiniVitals({
         unit="%"
         fraction={node.diskPct / 100}
         paint="var(--progress-disk)"
-      />
-      <MiniMetricBar
-        icon={<Gauge size={12} strokeWidth={2} />}
-        label="负载"
-        valueText={node.load1.toFixed(2)}
-        fraction={loadFraction}
-        paint="var(--progress-load)"
       />
     </div>
   );

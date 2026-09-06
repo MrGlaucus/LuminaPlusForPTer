@@ -261,6 +261,14 @@ function NodeMetricSection({
         paint="var(--progress-cpu)"
       />
       <MetricBar
+        icon={<Gauge size={13} strokeWidth={2} />}
+        label="负载"
+        valueText={node.load1.toFixed(2)}
+        fraction={loadFraction}
+        redrawKey={redrawKey}
+        paint="var(--progress-load)"
+      />
+      <MetricBar
         icon={<MemoryStick size={13} strokeWidth={2} />}
         label="内存"
         valueText={node.ramPct.toFixed(2)}
@@ -279,14 +287,6 @@ function NodeMetricSection({
         fraction={node.diskPct / 100}
         redrawKey={redrawKey}
         paint="var(--progress-disk)"
-      />
-      <MetricBar
-        icon={<Gauge size={13} strokeWidth={2} />}
-        label="负载"
-        valueText={node.load1.toFixed(2)}
-        fraction={loadFraction}
-        redrawKey={redrawKey}
-        paint="var(--progress-load)"
       />
     </div>
   );
