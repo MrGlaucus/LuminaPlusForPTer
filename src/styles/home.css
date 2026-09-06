@@ -547,11 +547,11 @@
   gap: 0;
 }
 
-/* 方向图标内联到数值前:作为上行/下行的小标记,明显小于数值。
-   与数字同用 baseline 对齐,保证箭头与文字底部基线一致。 */
+/* 方向图标内联到数值前:作为上行/下行的小标记。固定像素宽,保证上下行两行
+   图标列、首个数字列各自落在同一竖线上;与数值垂直居中对齐。 */
 .overview-card-direction-icon {
-  width: 0.5em;
-  height: 0.5em;
+  width: 18px;
+  height: 14px;
   flex-shrink: 0;
 }
 
@@ -570,6 +570,8 @@
   min-width: 0;
   overflow: hidden;
   gap: 3px;
+  /* 图标、数值、单位统一垂直居中对齐,箭头与文字在同一水平中心线。 */
+  align-items: center;
   font-size: 28px;
   text-overflow: ellipsis;
 }
