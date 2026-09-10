@@ -131,6 +131,7 @@ export interface ThemeSettings {
   enableHomeSort?: boolean;
   homeSortField?: "default" | "name" | "speed" | "traffic" | "price";
   homeSortDirection?: "asc" | "desc";
+  showCostsToGuests?: boolean;
   showCostSummary?: boolean;
   showCostSummaryFloatingButton?: boolean;
   showOverviewRatings?: boolean;

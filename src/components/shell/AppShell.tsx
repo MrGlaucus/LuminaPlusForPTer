@@ -9,6 +9,7 @@ import { usePublicConfig } from "@/hooks/usePublicConfig";
 import { useSiteMetadata } from "@/hooks/useSiteMetadata";
 import { useMetricColorsSync } from "@/hooks/useMetricColors";
 import { useNodeStoreStatus } from "@/hooks/useNode";
+import { PwaPullToRefresh } from "./PwaPullToRefresh";
 
 export function AppShell() {
   useAppearance();
@@ -35,6 +36,7 @@ export function AppShell() {
     auth.data?.logged_in !== true;
   const isHomeDashboard =
     normalizedPath === "/" && new URLSearchParams(search).get("view") !== "theme-manage";
+  const pullRefreshActive = isDataRoute && (normalizedPath !== "/" || isHomeDashboard);
   const canHydrateHome =
     isHomeDashboard && !isCheckingAccess && !accessError && !isPrivateVisitor;
   const homeStoreStatus = useNodeStoreStatus(canHydrateHome);
@@ -43,6 +45,7 @@ export function AppShell() {
   const isCheckingShell = isCheckingAccess || isCheckingHomeData;
   return (
     <div className="relative flex min-h-screen flex-col">
+      <PwaPullToRefresh active={pullRefreshActive} />
       <BackgroundLayer />
       <AmbientEffectLayer />
       <main className="app-main flex-1 px-3 pb-8 sm:px-5 md:px-6 lg:px-8">

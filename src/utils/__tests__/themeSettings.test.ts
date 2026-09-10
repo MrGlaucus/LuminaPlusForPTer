@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_THEME_SETTINGS,
+  canViewCosts,
   normalizeThemeSettings,
   shouldShowAdminEntry,
 } from "@/utils/themeSettings";
@@ -189,6 +190,16 @@ describe("normalizeThemeSettings", () => {
     const legacyDisabled = normalizeThemeSettings({ enableAdminButton: false });
     expect(shouldShowAdminEntry(legacyDisabled, false)).toBe(false);
     expect(shouldShowAdminEntry(legacyDisabled, true)).toBe(false);
+  });
+
+  it("can hide costs from guests without affecting logged-in administrators", () => {
+    const defaults = normalizeThemeSettings({});
+    expect(defaults.showCostsToGuests).toBe(true);
+    expect(canViewCosts(defaults, false)).toBe(true);
+
+    const privateCosts = normalizeThemeSettings({ showCostsToGuests: false });
+    expect(canViewCosts(privateCosts, false)).toBe(false);
+    expect(canViewCosts(privateCosts, true)).toBe(true);
   });
 
   it("parses hiddenNodes from a delimited string and dedupes", () => {

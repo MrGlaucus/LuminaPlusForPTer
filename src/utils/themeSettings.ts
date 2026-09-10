@@ -74,6 +74,7 @@ export interface ResolvedThemeSettings {
   enableHomeSort: boolean;
   homeSortField: HomeSortField;
   homeSortDirection: HomeSortDirection;
+  showCostsToGuests: boolean;
   showCostSummary: boolean;
   showCostSummaryFloatingButton: boolean;
   showOverviewRatings: boolean;
@@ -126,6 +127,7 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
   enableHomeSort: true,
   homeSortField: "default",
   homeSortDirection: HOME_SORT_NATURAL_DIRECTION.default,
+  showCostsToGuests: true,
   showCostSummary: true,
   showCostSummaryFloatingButton: true,
   showOverviewRatings: true,
@@ -219,6 +221,13 @@ export function shouldShowAdminEntry(
   );
 }
 
+export function canViewCosts(
+  settings: Pick<ResolvedThemeSettings, "showCostsToGuests">,
+  loggedIn: boolean,
+) {
+  return loggedIn || settings.showCostsToGuests;
+}
+
 function normalizePlainText(value: unknown) {
   return typeof value === "string" ? value : "";
 }
@@ -289,6 +298,8 @@ export function normalizeThemeSettings(
     homeGroupOrder: normalizeHomeGroupOrder(settings?.homeGroupOrder),
     enableHomeSort: enabledUnlessFalse(settings?.enableHomeSort),
     ...normalizeHomeSortDefault(settings?.homeSortField, settings?.homeSortDirection),
+    // 默认公开以保持存量站点升级后的展示行为；站长可显式关闭访客费用展示。
+    showCostsToGuests: enabledUnlessFalse(settings?.showCostsToGuests),
     showCostSummary: enabledUnlessFalse(settings?.showCostSummary),
     showCostSummaryFloatingButton: enabledUnlessFalse(settings?.showCostSummaryFloatingButton),
     showOverviewRatings: enabledUnlessFalse(settings?.showOverviewRatings),

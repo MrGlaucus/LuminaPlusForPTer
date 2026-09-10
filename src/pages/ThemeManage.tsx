@@ -307,6 +307,7 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     enableHomeSort: settings.enableHomeSort,
     homeSortField: settings.homeSortField,
     homeSortDirection: settings.homeSortDirection,
+    showCostsToGuests: settings.showCostsToGuests,
     showCostSummary: settings.showCostSummary,
     showCostSummaryFloatingButton: settings.showCostSummaryFloatingButton,
     showOverviewRatings: settings.showOverviewRatings,
@@ -2044,6 +2045,13 @@ export function ThemeManage() {
       >
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
           <div className="flex flex-col gap-3">
+            <ToggleRow
+              field="showCostsToGuests"
+              title="向未登录访客公开费用"
+              desc="关闭后，续费价格、资产统计和价格排序仅登录管理员可见；到期时间仍正常显示。"
+              checked={draft.showCostsToGuests}
+              onPatch={patch}
+            />
             <ToggleRow
               field="showCostSummary"
               title="显示资产页入口按钮"
