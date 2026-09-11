@@ -33,6 +33,7 @@ import {
 import { getDisplayRegionCode } from "@/utils/geo";
 import { useHomeSort } from "@/hooks/useHomeSort";
 import { useHomeNodeOrder } from "@/hooks/useHomeNodeOrder";
+import { HOME_SORT_NATURAL_DIRECTION } from "@/utils/homeSort";
 import { useHourlyClock, useMinuteClock } from "@/hooks/useClock";
 import { preloadAssetsPage } from "@/services/assetsPageLoader";
 import {
@@ -51,7 +52,7 @@ import { NodeCard } from "./NodeCard";
 import { NodeListView } from "./NodeListView";
 import { TodayTrafficDialogContext } from "./NodeTodayTrafficPopover";
 import { RenewalReminder } from "./RenewalReminder";
-import type { NodeViewMode } from "@/utils/themeSettings";
+import { canViewCosts, type NodeViewMode } from "@/utils/themeSettings";
 import type { RenewalReminderSource } from "@/utils/renewalReminder";
 
 // 卡片视图网格密度；列表档由独立组件布局。
@@ -119,6 +120,7 @@ function HomeOverviewCards({
   bandwidthRatingLabels,
   assetRatingLabels,
   todayTrafficRatingLabels,
+  showCosts,
   showDetailButton,
   renewalNodes,
   showTodayTrafficCard,
@@ -140,6 +142,7 @@ function HomeOverviewCards({
   bandwidthRatingLabels: string;
   assetRatingLabels: string;
   todayTrafficRatingLabels: string;
+  showCosts: boolean;
   showDetailButton: boolean;
   renewalNodes: RenewalReminderSource[];
   showTodayTrafficCard: boolean;
@@ -159,11 +162,13 @@ function HomeOverviewCards({
     overview.totalNodes > 0 ? (overview.onlineNodes / overview.totalNodes) * 100 : 0;
   const offlinePct =
     overview.totalNodes > 0 ? (overview.offlineNodes / overview.totalNodes) * 100 : 0;
-  const remainingValue = costSummary
-    ? formatCnyMoney(costSummary.remainingCny)
-    : costLoading
-      ? "计算中"
-      : "—";
+  const remainingValue = !showCosts
+    ? "-"
+    : costSummary
+      ? formatCnyMoney(costSummary.remainingCny)
+      : costLoading
+        ? "计算中"
+        : "—";
   const trafficDetailLabel = `↑ ${formatBytes(overview.trafficUp)} · ↓ ${formatBytes(overview.trafficDown)}`;
   const trafficCompactLabel = `↑${formatCompactBytes(overview.trafficUp)} ↓${formatCompactBytes(overview.trafficDown)}`;
   const trafficRating =
@@ -468,10 +473,19 @@ export function NodeGrid() {
   const themeSettings = useThemeSettings();
   const { mode } = useViewMode();
   const sort = useHomeSort();
+  const costsVisible =
+    themeSettings.isReady && canViewCosts(themeSettings, me?.logged_in === true);
   // enableHomeSort 控制访客能否改排序;关闭时无视 session 覆盖、直接用管理员默认序(默认仍是 weight)。
   const sortEnabled = themeSettings.isReady && themeSettings.enableHomeSort;
-  const sortField = sortEnabled ? sort.field : themeSettings.homeSortField;
-  const sortDirection = sortEnabled ? sort.direction : themeSettings.homeSortDirection;
+  const configuredSortField = sortEnabled ? sort.field : themeSettings.homeSortField;
+  const configuredSortDirection = sortEnabled ? sort.direction : themeSettings.homeSortDirection;
+  // 费用不公开时不能通过相对顺序推断价格；存量的价格排序偏好回退到默认权重顺序。
+  const sortField = !costsVisible && configuredSortField === "price"
+    ? "default"
+    : configuredSortField;
+  const sortDirection = !costsVisible && configuredSortField === "price"
+    ? HOME_SORT_NATURAL_DIRECTION.default
+    : configuredSortDirection;
   const [selectedGroup, setSelectedGroup] = useState(HOME_ALL_GROUP);
   const [selectedRegion, setSelectedRegion] = useState(HOME_ALL_REGION);
   const [todayTrafficDialogOpen, setTodayTrafficDialogOpen] = useState(false);
@@ -555,11 +569,12 @@ export function NodeGrid() {
   // 累计流量卡同样跟随总览区;默认关闭,需在主题设置显式开启。
   const showTrafficCard = showHomeOverview && themeSettings.showTrafficCard && hasNodes;
   // 卡内入口与悬浮入口互斥，避免重复操作入口。
-  const showAssetCard = showHomeOverview && hasNodes;
+  const costOverviewNeeded = showHomeOverview && costsVisible && hasNodes;
   const showCostDetailButton =
-    showAssetCard && themeSettings.isReady && themeSettings.showCostSummary;
+    costOverviewNeeded && themeSettings.isReady && themeSettings.showCostSummary;
   const showCostFloatingButton =
     themeSettings.isReady &&
+    costsVisible &&
     themeSettings.showCostSummaryFloatingButton &&
     hasNodes &&
     !showCostDetailButton;
@@ -579,18 +594,18 @@ export function NodeGrid() {
   }, [showCostDetailButton, showCostFloatingButton]);
 
   // 资产入口存在时预热汇率，供概览、价格排序和资产页复用。
-  const costNeeded = showAssetCard || showCostFloatingButton;
+  const costNeeded = costOverviewNeeded || showCostFloatingButton;
   const rateQuery = useQuery({
     queryKey: ["cost-rates", themeSettings.costRateApiUrl],
     queryFn: ({ signal }) => getExchangeRates(themeSettings.costRateApiUrl, { signal }),
     staleTime: 60 * 60 * 1000,
     // 「价格」排序也要汇率换算月化价,即便没显示资产卡也得拉一次;但空列表无需拉。
-    enabled: (costNeeded || sortField === "price") && hasNodes,
+    enabled: costsVisible && (costNeeded || sortField === "price") && hasNodes,
     retry: 1,
   });
   const costSummary = useMemo(
     () =>
-      rateQuery.data
+      costsVisible && rateQuery.data
         ? calculateCostSummary(
             visibleMeta,
             themeSettings.costIgnoredNodes,
@@ -599,7 +614,7 @@ export function NodeGrid() {
             now,
           )
         : null,
-    [now, visibleMeta, themeSettings.costIgnoredNodes, themeSettings.costPremiums, rateQuery.data],
+    [costsVisible, now, visibleMeta, themeSettings.costIgnoredNodes, themeSettings.costPremiums, rateQuery.data],
   );
   // 「价格」排序键:月化价格(CNY);免费/忽略/汇率缺失的节点 null,排到默认序之后。
   const priceByUuid = useMemo(() => {
@@ -697,21 +712,24 @@ export function NodeGrid() {
                 <MiniNodeCard
                   uuid={uuid}
                   showTodayTraffic={showTrafficPopover}
+                  showCosts={costsVisible}
                 />
               ) : mode === "compact" ? (
                 <CompactNodeCard
                   uuid={uuid}
                   showTodayTraffic={showTrafficPopover}
+                  showCosts={costsVisible}
                 />
               ) : (
                 <NodeCard
                   uuid={uuid}
                   showTodayTraffic={showTrafficPopover}
+                  showCosts={costsVisible}
                 />
               )}
             </div>
           )),
-    [orderedUuids, mode, showTrafficPopover],
+    [costsVisible, orderedUuids, mode, showTrafficPopover],
   );
   const showGroupTabs =
     themeSettings.isReady && themeSettings.showGroupTabs && groupOptions.length > 0;
@@ -785,6 +803,7 @@ export function NodeGrid() {
           overview={overview}
           dense={mode === "mini" || mode === "list"}
           showDetailButton={showCostDetailButton}
+          showCosts={costsVisible}
           renewalNodes={renewalNodes}
           costSummary={costSummary}
           costLoading={costLoading}
@@ -836,7 +855,7 @@ export function NodeGrid() {
               onSelectGroup={setSelectedGroup}
             />
           )}
-          {showHomeSort && <HomeSortControl state={sort} />}
+          {showHomeSort && <HomeSortControl state={sort} showPrice={costsVisible} />}
         </div>
       )}
       {showRegionBar && (
@@ -847,7 +866,7 @@ export function NodeGrid() {
         />
       )}
       {isList ? (
-        <NodeListView uuids={orderedUuids} />
+        <NodeListView uuids={orderedUuids} showCosts={costsVisible} />
       ) : showTrafficPopover ? (
         <TodayTrafficStatsProvider uuids={trafficUuids}>
           {gridWithDialogContext}
