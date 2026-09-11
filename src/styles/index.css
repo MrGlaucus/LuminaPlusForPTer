@@ -55,6 +55,9 @@ body {
    氛围层(顶光 --canvas-glow)也画在 <html> 背景上,天然只在纯色模式出现——透明模式的
    body::before 图片盖在其上,所以两者互不干扰。变量未定义时回退为 none,该层不绘制。 */
 html {
+  /* 滚动条常驻占位:弹窗等浮层锁 body 滚动(overflow: hidden)时滚动条虽消失,
+     但槽位保留,页面可用宽度不变,网格列不会因宽度突变重排而「抖一下」。 */
+  scrollbar-gutter: stable;
   background-color: var(--bg-0);
   background-image: var(--canvas-glow, none);
   background-repeat: no-repeat;
