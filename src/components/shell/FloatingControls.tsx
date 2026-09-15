@@ -156,7 +156,7 @@ export function FloatingControls({
             )}
             {showAdmin && (
               <a
-                href="/admin"
+                href="/manage"
                 aria-label={me?.logged_in ? "管理" : "后台登录"}
                 title={me?.logged_in ? "管理" : "后台登录"}
                 tabIndex={hiddenTabIndex}

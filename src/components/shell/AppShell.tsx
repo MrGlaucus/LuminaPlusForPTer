@@ -96,7 +96,7 @@ function PrivateSiteGate() {
         </p>
       </div>
       <a
-        href="/admin"
+        href="/manage"
         target="_blank"
         rel="noopener noreferrer"
         className="control-button px-4 py-2 text-[13px] font-medium"
