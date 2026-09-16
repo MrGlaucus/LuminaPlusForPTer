@@ -94,12 +94,12 @@ describe("home responsive layout contracts", () => {
     expect(homeCss).toMatch(/@supports \(-webkit-touch-callout: none\)/);
     expect(homeCss).toMatch(/@media \(display-mode: standalone\) and \(pointer: coarse\)/);
     expect(homeCss).toMatch(
-      /html \.home-brand,\s*html \.floating-controls\s*\{\s*top:\s*6px/,
+      /html \.home-brand,\s*html \.floating-controls\s*\{\s*top:\s*-4px/,
     );
-    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*48px/);
+    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*38px/);
     expect(homeCss).toMatch(
       /html \.home-dashboard\.is-home-header-hidden\s*\{\s*padding-top:\s*0/,
     );
-    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*44px/);
+    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*34px/);
   });
 });
