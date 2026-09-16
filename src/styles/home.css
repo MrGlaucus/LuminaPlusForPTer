@@ -1216,20 +1216,20 @@
   height: 22px;
 }
 
-/* iOS 主屏独立模式：iOS 26.1 起系统在顶部安全区绘制系统层，iOS 27 起为渐进高斯模糊，
-   且网页无法移除该覆盖层。站点铭牌与浮动快捷栏不再嵌入状态栏区域，整体下移 10px
-   落到系统层之下（真机反馈收敛值：既不被遮又不过度留白）；概览卡等首页内容同步让位，
-   滚动隐藏头部时留白仍完全收起。限定 iOS + standalone（-webkit-touch-callout 仅 WebKit
-   支持且配合粗指针排除 Mac），浏览器内打开的移动端与桌面布局不受影响。 */
+/* iOS 主屏独立模式：为真机反馈的顶部系统模糊层预留空间。
+   站点铭牌与浮动快捷栏整体下移 12px，概览卡等首页内容同步让位；
+   此数值根据反馈微调，最终避让效果仍待真机确认。滚动隐藏头部时留白仍完全收起。
+   限定 iOS + standalone（-webkit-touch-callout 配合粗指针筛选），
+   浏览器内打开的移动端与桌面布局不受影响。 */
 @supports (-webkit-touch-callout: none) {
   @media (display-mode: standalone) and (pointer: coarse) {
     html .home-brand,
     html .floating-controls {
-      top: -4px;
+      top: -2px;
     }
 
     html .home-dashboard {
-      padding-top: 38px;
+      padding-top: 40px;
     }
 
     /* 定时隐藏头部时留白仍需完全收起（特异性盖过上面的 padding-top）。 */
@@ -1240,11 +1240,11 @@
     @media (min-width: 1024px) {
       html .home-brand,
       html .floating-controls {
-        top: -8px;
+        top: -6px;
       }
 
       html .home-dashboard {
-        padding-top: 34px;
+        padding-top: 36px;
       }
     }
   }
