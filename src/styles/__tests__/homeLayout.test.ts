@@ -89,4 +89,17 @@ describe("home responsive layout contracts", () => {
     expect(routerSource).not.toMatch(/const Home\s*=\s*lazy/);
     expect(routerSource).toContain("element: <Home />");
   });
+
+  it("nudges brand and controls below the iOS PWA system blur band", () => {
+    expect(homeCss).toMatch(/@supports \(-webkit-touch-callout: none\)/);
+    expect(homeCss).toMatch(/@media \(display-mode: standalone\) and \(pointer: coarse\)/);
+    expect(homeCss).toMatch(
+      /html \.home-brand,\s*html \.floating-controls\s*\{\s*top:\s*6px/,
+    );
+    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*48px/);
+    expect(homeCss).toMatch(
+      /html \.home-dashboard\.is-home-header-hidden\s*\{\s*padding-top:\s*0/,
+    );
+    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*44px/);
+  });
 });
