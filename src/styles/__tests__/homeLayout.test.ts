@@ -94,15 +94,24 @@ describe("home responsive layout contracts", () => {
     expect(homeCss).toMatch(/@supports \(-webkit-touch-callout: none\)/);
     expect(homeCss).toMatch(/@media \(display-mode: standalone\) and \(pointer: coarse\)/);
     expect(homeCss).toMatch(
-      /html \.home-brand,\s*html \.floating-controls\s*\{\s*top:\s*0;/,
+      /html \.home-brand,\s*html \.floating-controls\s*\{\s*top:\s*1px/,
     );
-    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*42px/);
+    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*43px/);
     expect(homeCss).toMatch(
       /html \.home-dashboard\.is-home-header-hidden\s*\{\s*padding-top:\s*0/,
     );
     expect(homeCss).toMatch(
-      /@media \(min-width: 1024px\)\s*\{\s*html \.home-brand,\s*html \.floating-controls\s*\{\s*top:\s*-4px/,
+      /@media \(min-width: 1024px\)\s*\{\s*html \.home-brand,\s*html \.floating-controls\s*\{\s*top:\s*-3px/,
     );
-    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*38px/);
+    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*39px/);
+  });
+
+  it("仅在 iOS PWA 内为下拉刷新提示增加相同的 15px 避让", () => {
+    expect(homeCss).toMatch(
+      /@supports \(-webkit-touch-callout: none\)\s*\{\s*@media \(display-mode: standalone\) and \(pointer: coarse\)\s*\{\s*html \.pwa-pull-refresh\s*\{\s*top:\s*calc\(env\(safe-area-inset-top, 0px\) \+ 15px\);\s*\}/,
+    );
+    expect(surfaceCss).toMatch(
+      /\.pwa-pull-refresh\s*\{[^}]*top:\s*env\(safe-area-inset-top, 0px\);/,
+    );
   });
 });
