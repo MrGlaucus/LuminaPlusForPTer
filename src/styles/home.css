@@ -1217,7 +1217,7 @@
 }
 
 /* iOS 主屏独立模式：为真机反馈的顶部系统模糊层预留空间。
-   站点铭牌与浮动快捷栏整体下移 13px，概览卡等首页内容同步让位；
+   站点铭牌与浮动快捷栏整体下移 14px，概览卡等首页内容同步让位；
    此数值根据反馈微调，最终避让效果仍待真机确认。滚动隐藏头部时留白仍完全收起。
    限定 iOS + standalone（-webkit-touch-callout 配合粗指针筛选），
    浏览器内打开的移动端与桌面布局不受影响。 */
@@ -1225,11 +1225,11 @@
   @media (display-mode: standalone) and (pointer: coarse) {
     html .home-brand,
     html .floating-controls {
-      top: -1px;
+      top: 0;
     }
 
     html .home-dashboard {
-      padding-top: 41px;
+      padding-top: 42px;
     }
 
     /* 定时隐藏头部时留白仍需完全收起（特异性盖过上面的 padding-top）。 */
@@ -1240,11 +1240,11 @@
     @media (min-width: 1024px) {
       html .home-brand,
       html .floating-controls {
-        top: -5px;
+        top: -4px;
       }
 
       html .home-dashboard {
-        padding-top: 37px;
+        padding-top: 38px;
       }
     }
   }

@@ -94,15 +94,15 @@ describe("home responsive layout contracts", () => {
     expect(homeCss).toMatch(/@supports \(-webkit-touch-callout: none\)/);
     expect(homeCss).toMatch(/@media \(display-mode: standalone\) and \(pointer: coarse\)/);
     expect(homeCss).toMatch(
-      /html \.home-brand,\s*html \.floating-controls\s*\{\s*top:\s*-1px/,
+      /html \.home-brand,\s*html \.floating-controls\s*\{\s*top:\s*0;/,
     );
-    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*41px/);
+    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*42px/);
     expect(homeCss).toMatch(
       /html \.home-dashboard\.is-home-header-hidden\s*\{\s*padding-top:\s*0/,
     );
     expect(homeCss).toMatch(
-      /@media \(min-width: 1024px\)\s*\{\s*html \.home-brand,\s*html \.floating-controls\s*\{\s*top:\s*-5px/,
+      /@media \(min-width: 1024px\)\s*\{\s*html \.home-brand,\s*html \.floating-controls\s*\{\s*top:\s*-4px/,
     );
-    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*37px/);
+    expect(homeCss).toMatch(/html \.home-dashboard\s*\{\s*padding-top:\s*38px/);
   });
 });
