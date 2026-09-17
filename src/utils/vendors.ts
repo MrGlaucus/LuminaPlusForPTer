@@ -273,8 +273,9 @@ export const VENDOR_DB: readonly VendorDefinition[] = [
     name: "LeaseWeb",
     keywords: ["leaseweb"],
     asn: [28753],
+    logoFile: "leaseweb.svg",
     badge: "LW",
-    color: "#189eff",
+    color: "#1E314D",
   },
   {
     id: "colocrossing",
