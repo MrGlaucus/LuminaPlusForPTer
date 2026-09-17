@@ -1,0 +1,96 @@
+/* 厂商 LOGO:尺寸走 --vendor-logo-size 内联变量,与同行地区旗/系统图标对齐。 */
+.vendor-logo {
+  display: inline-flex;
+  width: var(--vendor-logo-size, 14px);
+  height: var(--vendor-logo-size, 14px);
+  object-fit: contain;
+  user-select: none;
+}
+
+/* 包裹层:统一承载尺寸,作为四视图 flex 行里的单一子项,不改变原有间距。 */
+.vendor-logo-wrap {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: var(--vendor-logo-size, 14px);
+  height: var(--vendor-logo-size, 14px);
+  align-items: center;
+  justify-content: center;
+}
+
+/* 无官方图形或图形加载失败时的字母徽标:品牌色底 + 白色缩写。 */
+.vendor-logo-badge {
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  color: #fff;
+  background: var(--vendor-logo-color, var(--text-tertiary));
+  font-size: calc(var(--vendor-logo-size, 14px) * 0.46);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* 详情页「厂商」信息行:图标 + 厂商名;整行是 tooltip 的定位锚与 hover 上下文。 */
+.instance-vendor {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 厂商行图标(18px)高于文字,居中对齐,避免共享的 baseline 把标签压低。 */
+.instance-info-item.is-vendor {
+  align-items: center;
+}
+
+/* 溯源 tooltip:深色倒置卡片,右对齐防溢出;指针事件不拦截,交给整行 hover。 */
+.vendor-logo-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    visibility 0s linear 140ms;
+  pointer-events: none;
+}
+
+.vendor-logo-wrap:hover .vendor-logo-tooltip,
+.instance-vendor:hover .vendor-logo-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition-delay: 0s;
+}
+
+.vendor-logo-tooltip-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: max-content;
+  max-width: 280px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: #23272f;
+  color: #f4f6fa;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.65;
+  text-align: left;
+}
+
+.vendor-logo-tooltip-line {
+  white-space: normal;
+}
+
+.vendor-logo-tooltip-line.is-title {
+  font-weight: 700;
+}

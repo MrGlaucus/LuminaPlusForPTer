@@ -19,6 +19,7 @@ import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useMetricColorsVersion } from "@/hooks/useMetricColors";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
+import { useVendorInfo } from "@/hooks/useVendorInfo";
 import { formatBytes } from "@/utils/format";
 import { HOMEPAGE_MULTI_PING_TASK_COUNT } from "@/utils/pingTasks";
 import {
@@ -27,6 +28,7 @@ import {
 } from "@/utils/metricTone";
 import { Flag } from "@/components/ui/Flag";
 import { OsLogo } from "@/components/ui/OsLogo";
+import { VendorLogo } from "@/components/ui/VendorLogo";
 import { MetricBar } from "./MetricBar";
 import { LatencyBars } from "./LatencyBars";
 import { QualityBars } from "./QualityBars";
@@ -205,11 +207,13 @@ function NodeCardHeader({
   showTodayTraffic: boolean;
 }) {
   const detailLabels = nodeDetailLinkLabels(node.name, osName);
+  const vendor = useVendorInfo(node);
   return (
     <header className="server-card-header">
       <div className="server-card-title-block">
         <div className="server-card-title-row">
           <Flag region={node.region} size={15} />
+          {vendor && <VendorLogo vendor={vendor} size={15} />}
           <Link
             to={`/instance/${encodeURIComponent(node.uuid)}`}
             className="server-card-title-link"

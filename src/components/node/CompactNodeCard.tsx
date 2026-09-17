@@ -17,8 +17,10 @@ import {
 import { clsx } from "clsx";
 import { Flag } from "@/components/ui/Flag";
 import { OsLogo } from "@/components/ui/OsLogo";
+import { VendorLogo } from "@/components/ui/VendorLogo";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
+import { useVendorInfo } from "@/hooks/useVendorInfo";
 import { formatBytes } from "@/utils/format";
 import { HOMEPAGE_MULTI_PING_TASK_COUNT } from "@/utils/pingTasks";
 import { speedRateColor } from "@/utils/metricTone";
@@ -284,11 +286,13 @@ function CompactNodeHeader({
   showTodayTraffic: boolean;
 }) {
   const detailLabels = nodeDetailLinkLabels(node.name, osName);
+  const vendor = useVendorInfo(node);
   return (
     <header className="compact-node-header">
       <div className="compact-node-title-wrap">
         <div className="compact-node-title-row">
           <Flag region={node.region} size={15} />
+          {vendor && <VendorLogo vendor={vendor} size={15} />}
           <Link
             to={`/instance/${encodeURIComponent(node.uuid)}`}
             className="compact-node-title"

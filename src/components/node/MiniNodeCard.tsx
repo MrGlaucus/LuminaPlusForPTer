@@ -14,10 +14,12 @@ import {
 import { clsx } from "clsx";
 import { Flag } from "@/components/ui/Flag";
 import { OsLogo } from "@/components/ui/OsLogo";
+import { VendorLogo } from "@/components/ui/VendorLogo";
 import { IpStackBadges } from "./IpStackBadges";
 import { NodeTodayTrafficPopover } from "./NodeTodayTrafficPopover";
 import { HealthBucketTooltip } from "./HealthBucketTooltip";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
+import { useVendorInfo } from "@/hooks/useVendorInfo";
 import { speedRateColor } from "@/utils/metricTone";
 import { supportsFineHover } from "@/utils/mediaQuery";
 import {
@@ -47,9 +49,11 @@ function MiniHeader({
 }) {
   const detailLabels = nodeDetailLinkLabels(node.name, osName);
   const detailHref = `/instance/${encodeURIComponent(node.uuid)}`;
+  const vendor = useVendorInfo(node);
   return (
     <header className="mini-node-header">
       <Flag region={node.region} size={14} />
+      {vendor && <VendorLogo vendor={vendor} size={14} />}
       <Link to={detailHref} className="mini-node-title" title={node.name}>
         {node.name}
       </Link>

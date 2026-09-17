@@ -304,6 +304,8 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     showGroupTabs: settings.showGroupTabs,
     showRegionBar: settings.showRegionBar,
     showCardGroup: settings.showCardGroup,
+    showProviderLogo: settings.showProviderLogo,
+    providerOnlineLookup: settings.providerOnlineLookup,
     homeGroupOrder: settings.homeGroupOrder,
     enableHomeSort: settings.enableHomeSort,
     homeSortField: settings.homeSortField,
@@ -1798,6 +1800,20 @@ export function ThemeManage() {
             title="卡片显示分组"
             desc="关闭后卡片内不再显示节点分组名（不影响分组筛选栏与备注）。"
             checked={draft.showCardGroup}
+            onPatch={patch}
+          />
+          <ToggleRow
+            field="showProviderLogo"
+            title="显示厂商 LOGO"
+            desc="在节点名称前显示厂商/商家图标，根据节点名称、分组、备注与标签自动识别；识别不到时不显示。默认关闭。"
+            checked={draft.showProviderLogo}
+            onPatch={patch}
+          />
+          <ToggleRow
+            field="providerOnlineLookup"
+            title="在线识别厂商"
+            desc="本地识别不到时，用节点 IP 在线查询 ASN/组织名补全厂商；请求发往公共 IP 数据库，结果缓存 30 天。"
+            checked={draft.providerOnlineLookup}
             onPatch={patch}
           />
           <ToggleRow

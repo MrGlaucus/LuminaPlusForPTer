@@ -70,6 +70,8 @@ export interface ResolvedThemeSettings {
   showGroupTabs: boolean;
   showRegionBar: boolean;
   showCardGroup: boolean;
+  showProviderLogo: boolean;
+  providerOnlineLookup: boolean;
   homeGroupOrder: string[];
   enableHomeSort: boolean;
   homeSortField: HomeSortField;
@@ -127,6 +129,10 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
   showGroupTabs: true,
   showRegionBar: true,
   showCardGroup: true,
+  // 默认关闭(需手动开启):厂商识别基于节点元数据关键词,可能误报,由站长确认后开启。
+  showProviderLogo: false,
+  // 默认开:本地识别命中不了时用 IP 在线查询 ASN/组织名补全;关闭后仅走本地关键词。
+  providerOnlineLookup: true,
   homeGroupOrder: [],
   enableHomeSort: true,
   homeSortField: "default",
@@ -304,6 +310,8 @@ export function normalizeThemeSettings(
     showGroupTabs: enabledUnlessFalse(settings?.showGroupTabs),
     showRegionBar: enabledUnlessFalse(settings?.showRegionBar),
     showCardGroup: enabledUnlessFalse(settings?.showCardGroup),
+    showProviderLogo: settings?.showProviderLogo === true,
+    providerOnlineLookup: enabledUnlessFalse(settings?.providerOnlineLookup),
     homeGroupOrder: normalizeHomeGroupOrder(settings?.homeGroupOrder),
     enableHomeSort: enabledUnlessFalse(settings?.enableHomeSort),
     ...normalizeHomeSortDefault(settings?.homeSortField, settings?.homeSortDirection),

@@ -155,6 +155,21 @@ describe("normalizeThemeSettings", () => {
     ).toBe(false);
   });
 
+  it("keeps the provider logo display opt-in and online lookup enabled by default", () => {
+    const defaults = normalizeThemeSettings({});
+    expect(defaults.showProviderLogo).toBe(false);
+    expect(defaults.providerOnlineLookup).toBe(true);
+
+    expect(normalizeThemeSettings({ showProviderLogo: true }).showProviderLogo).toBe(true);
+    // 非布尔真值不算显式开启。
+    expect(
+      normalizeThemeSettings({ showProviderLogo: "yes" } as never).showProviderLogo,
+    ).toBe(false);
+    expect(
+      normalizeThemeSettings({ providerOnlineLookup: false }).providerOnlineLookup,
+    ).toBe(false);
+  });
+
   it("keeps timed home header hiding opt-in and normalizes its duration", () => {
     const defaults = normalizeThemeSettings({});
     expect(defaults.enableHomeHeaderAutoHide).toBe(false);

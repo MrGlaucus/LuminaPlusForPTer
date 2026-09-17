@@ -3,7 +3,9 @@ import { RefreshCw } from "lucide-react";
 import { useNodeMeta, useNodeMetrics } from "@/hooks/useNode";
 import { useMinuteClock } from "@/hooks/useClock";
 import { useTodayTrafficStats } from "@/hooks/useTodayTrafficStats";
+import { useVendorInfo } from "@/hooks/useVendorInfo";
 import { InstanceSwitcher } from "./InstanceSwitcher";
+import { VendorLogo } from "@/components/ui/VendorLogo";
 import {
   formatTodayPeakValue,
   formatTodayTrafficValue,
@@ -34,6 +36,8 @@ export function InstanceDetails({
   const metrics = useNodeMetrics(uuid);
   const trafficQuery = useTodayTrafficStats([uuid], now, "summary");
   const todayStat = trafficQuery.data?.rows.find((row) => row.uuid === uuid);
+  // hook 必须早于下方 !meta 早退调用,保持调用顺序稳定。
+  const vendor = useVendorInfo(meta);
   const isReady = Boolean(meta && metrics);
 
   useEffect(() => {
@@ -70,6 +74,18 @@ export function InstanceDetails({
         <div className="instance-info-group">
           <div className="instance-info-group-title">系统</div>
           <InfoRow label="状态" value={isOnline ? "在线" : "离线"} />
+          {vendor && (
+            <InfoRow
+              className="is-vendor"
+              label="厂商"
+              value={
+                <span className="instance-vendor">
+                  <VendorLogo vendor={vendor} size={18} showTrace />
+                  <span>{vendor.name}</span>
+                </span>
+              }
+            />
+          )}
           <InfoRow
             label="CPU"
             value={`${meta.cpu_name || "—"}${meta.cpu_cores > 0 ? ` (x${meta.cpu_cores})` : ""}`}
@@ -169,12 +185,14 @@ export function InstanceDetails({
 function InfoRow({
   label,
   value,
+  className,
 }: {
   label: string;
   value: ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="instance-info-item">
+    <div className={className ? `instance-info-item ${className}` : "instance-info-item"}>
       <span className="instance-info-label">{label}</span>
       <div className="instance-info-value">{value}</div>
     </div>

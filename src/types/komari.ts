@@ -127,6 +127,8 @@ export interface ThemeSettings {
   showGroupTabs?: boolean;
   showRegionBar?: boolean;
   showCardGroup?: boolean;
+  showProviderLogo?: boolean;
+  providerOnlineLookup?: boolean;
   homeGroupOrder?: string[];
   enableHomeSort?: boolean;
   homeSortField?: "default" | "name" | "speed" | "traffic" | "price";

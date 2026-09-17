@@ -4,7 +4,9 @@ import { ArrowDown, ArrowUp, CircleDollarSign } from "lucide-react";
 import { clsx } from "clsx";
 import { Flag } from "@/components/ui/Flag";
 import { OsLogo } from "@/components/ui/OsLogo";
+import { VendorLogo } from "@/components/ui/VendorLogo";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
+import { useVendorInfo } from "@/hooks/useVendorInfo";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useMetricColorsVersion } from "@/hooks/useMetricColors";
 import { formatBytes } from "@/utils/format";
@@ -231,6 +233,7 @@ const NodeRow = memo(function NodeRow({ uuid, showCosts }: { uuid: string; showC
   const model = useNodeCardModel(uuid, {
     pingBucketCount: LIST_PING_BUCKETS,
   });
+  const vendor = useVendorInfo(model.node);
 
   if (!model.node) {
     return <div className="node-list-row is-loading" aria-busy />;
@@ -264,6 +267,7 @@ const NodeRow = memo(function NodeRow({ uuid, showCosts }: { uuid: string; showC
   const usedPct = `${Math.round(clamp01(traffic.fraction) * 100)}%`;
   const rowLabel = [
     node.name,
+    vendor && `厂商 ${vendor.name}`,
     `系统 ${formatOsLabel(osName, node.os)}`,
     `CPU ${pctText(node.cpuPct)}`,
     `内存 ${pctText(node.ramPct)}`,
@@ -277,7 +281,7 @@ const NodeRow = memo(function NodeRow({ uuid, showCosts }: { uuid: string; showC
     `运行 ${uptime.value}${uptime.unit}`,
     `到期 ${expire.value}${expire.unit}`,
     "查看详情",
-  ].join("，");
+  ].filter((part): part is string => Boolean(part)).join("，");
 
   return (
     <Link
@@ -290,6 +294,7 @@ const NodeRow = memo(function NodeRow({ uuid, showCosts }: { uuid: string; showC
         <div className="node-list-node-text">
           <div className="node-list-node-head">
             <Flag region={node.region} size={14} />
+            {vendor && <VendorLogo vendor={vendor} size={14} />}
             <span className="node-list-name" title={node.name}>
               {node.name}
             </span>
