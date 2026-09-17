@@ -118,6 +118,15 @@ export const VENDOR_DB: readonly VendorDefinition[] = [
     color: "#e8a33d",
   },
   {
+    id: "netcup",
+    name: "netcup",
+    keywords: ["netcup"],
+    asn: [197540],
+    logoFile: "netcup.svg",
+    badge: "NC",
+    color: "#056473",
+  },
+  {
     id: "oracle",
     name: "Oracle Cloud",
     keywords: ["oracle", "甲骨文"],
