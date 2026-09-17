@@ -1803,20 +1803,6 @@ export function ThemeManage() {
             onPatch={patch}
           />
           <ToggleRow
-            field="showProviderLogo"
-            title="显示厂商 LOGO"
-            desc="在节点名称前显示厂商/商家图标，根据节点名称、分组、备注与标签自动识别；识别不到时不显示。默认关闭。"
-            checked={draft.showProviderLogo}
-            onPatch={patch}
-          />
-          <ToggleRow
-            field="providerOnlineLookup"
-            title="在线识别厂商"
-            desc="本地识别不到时，用节点 IP 在线查询 ASN/组织名补全厂商；请求发往公共 IP 数据库，结果缓存 30 天。"
-            checked={draft.providerOnlineLookup}
-            onPatch={patch}
-          />
-          <ToggleRow
             field="enableHomeSort"
             title="启用排序切换"
             desc="首页显示排序控件，访客可临时切换排序方式（离线节点恒定置底）。"
@@ -2038,6 +2024,20 @@ export function ThemeManage() {
               title="显示连接数（TCP/UDP）"
               desc="在大卡片与小卡片展示实时 TCP / UDP 连接数；需被控端上报，未上报显示 0。默认关闭。"
               checked={draft.showConnections}
+              onPatch={patch}
+            />
+            <ToggleRow
+              field="showProviderLogo"
+              title="显示厂商 LOGO"
+              desc="在节点名称前显示厂商/商家图标，根据节点名称、分组、备注与标签自动识别；识别不到时不显示。默认关闭。"
+              checked={draft.showProviderLogo}
+              onPatch={patch}
+            />
+            <ToggleRow
+              field="providerOnlineLookup"
+              title="在线识别厂商"
+              desc="本地识别不到时，用节点 IP 在线查询 ASN/组织名补全厂商；请求发往公共 IP 数据库，结果缓存 30 天。"
+              checked={draft.providerOnlineLookup}
               onPatch={patch}
             />
           </div>
