@@ -2200,7 +2200,7 @@ export function ThemeManage() {
             {" "}
             如果当前还没有可用任务，请先前往
             {" "}
-            <a href="/manage" className="theme-manage-inline-link">
+            <a href="/admin/ping" className="theme-manage-inline-link">
               后台 Ping 管理
             </a>
             {" "}
@@ -2384,7 +2384,7 @@ export function ThemeManage() {
           {noTasksYet && (
             <div className="theme-manage-empty-state">
               <span>当前还没有可用于首页展示的 Ping 任务。</span>
-              <a href="/manage" className="theme-manage-inline-link">
+              <a href="/admin/ping" className="theme-manage-inline-link">
                 前往后台 Ping 管理创建任务
               </a>
             </div>
