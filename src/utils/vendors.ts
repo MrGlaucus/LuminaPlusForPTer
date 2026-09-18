@@ -357,11 +357,27 @@ export const VENDOR_DB: readonly VendorDefinition[] = [
     color: "#0e7490",
   },
   {
+    id: "hostdzire",
+    name: "HostDZire",
+    keywords: ["hostdzire", "host dzire"],
+    logoFile: "hostdzire.svg",
+    badge: "HDZ",
+    color: "#253a51",
+  },
+  {
     id: "hostwinds",
     name: "Hostwinds",
     keywords: ["hostwinds"],
     badge: "HW",
     color: "#1793d1",
+  },
+  {
+    id: "zouter",
+    name: "Zouter",
+    keywords: ["zouter"],
+    logoFile: "zouter.svg",
+    badge: "ZO",
+    color: "#0d3067",
   },
 ];
 
