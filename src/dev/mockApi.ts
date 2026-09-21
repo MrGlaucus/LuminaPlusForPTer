@@ -568,6 +568,7 @@ export function installDevMockApi() {
           homepageMultiPingNodeTaskIds: {
             ...(nodes[0] ? { [nodes[0].uuid]: [3, 2, 1] } : {}),
             ...(nodes[1] ? { [nodes[1].uuid]: [1, 4, 3] } : {}),
+            ...(nodes[2] ? { [nodes[2].uuid]: { mode: "single", taskIds: [3, 2, 1] } } : {}),
           },
         },
       });

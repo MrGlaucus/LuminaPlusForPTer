@@ -1,5 +1,26 @@
 export type HomepagePingTaskBindings = Record<string, string[]>;
-export type HomepageMultiPingNodeTaskIds = Record<string, number[]>;
+// Existing arrays remain custom three-line selections. Inactive selections are
+// retained when switching to single-line or global mode so switching back is lossless.
+export type HomepagePingNodeConfig = number[] | {
+  mode: "single" | "default";
+  taskIds: number[];
+};
+export type HomepageMultiPingNodeTaskIds = Record<string, HomepagePingNodeConfig>;
+export function homepagePingNodeMode(config: HomepagePingNodeConfig | undefined) {
+  return Array.isArray(config) ? "custom" : config?.mode ?? "default";
+}
+
+export function switchHomepagePingNodeMode(
+  config: HomepagePingNodeConfig | undefined,
+  mode: "single" | "default" | "custom",
+  globalTaskIds: number[],
+  availableTaskIds: number[],
+): HomepagePingNodeConfig | undefined {
+  const saved = Array.isArray(config) ? config : config?.taskIds ?? [];
+  if (mode !== "custom") return { mode, taskIds: saved };
+  if (saved.length === HOMEPAGE_MULTI_PING_TASK_COUNT) return saved;
+  return createHomepageMultiPingTaskOverride(undefined, globalTaskIds, availableTaskIds) ?? config;
+}
 export const HOMEPAGE_MULTI_PING_TASK_COUNT = 3;
 
 const invertedBindingsCache = new WeakMap<HomepagePingTaskBindings, Map<string, number>>();
@@ -41,6 +62,18 @@ export function normalizeHomepageMultiPingNodeTaskIds(
   );
   for (const [rawUuid, rawTaskIds] of entries) {
     const uuid = rawUuid.trim();
+    if (!uuid) continue;
+    if (rawTaskIds && typeof rawTaskIds === "object" && !Array.isArray(rawTaskIds)) {
+      const config = rawTaskIds as Record<string, unknown>;
+      if (config.mode === "single" || config.mode === "default") {
+        const saved = normalizeHomepageMultiPingTaskIds(config.taskIds);
+        normalized[uuid] = {
+          mode: config.mode,
+          taskIds: saved.length === HOMEPAGE_MULTI_PING_TASK_COUNT ? saved : [],
+        };
+      }
+      continue;
+    }
     const taskIds = normalizeHomepageMultiPingTaskIds(rawTaskIds);
     if (!uuid || taskIds.length !== HOMEPAGE_MULTI_PING_TASK_COUNT) continue;
     normalized[uuid] = taskIds;
@@ -53,6 +86,7 @@ export function resolveHomepageMultiPingTaskIds(
   globalTaskIds: number[],
   nodeTaskIds: HomepageMultiPingNodeTaskIds = {},
 ): number[] {
+  if (homepagePingNodeMode(nodeTaskIds[clientUuid]) === "single") return [];
   const overrideTaskIds = normalizeHomepageMultiPingTaskIds(nodeTaskIds[clientUuid]);
   if (overrideTaskIds.length === HOMEPAGE_MULTI_PING_TASK_COUNT) {
     return overrideTaskIds;

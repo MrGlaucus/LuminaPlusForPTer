@@ -71,6 +71,7 @@ import {
 } from "@/utils/homeNodes";
 import {
   HOMEPAGE_MULTI_PING_TASK_COUNT,
+  homepagePingNodeMode,
   normalizeHomepageMultiPingNodeTaskIds,
   normalizeHomepageMultiPingTaskIds,
   normalizeHomepagePingTaskBindings,
@@ -1192,7 +1193,7 @@ export function ThemeManage() {
   );
   const multiPingConfiguredNodeCount = useMemo(
     () =>
-      sortedClients.filter((client) => draft.homepageMultiPingNodeTaskIds[client.uuid])
+      sortedClients.filter((client) => homepagePingNodeMode(draft.homepageMultiPingNodeTaskIds[client.uuid]) !== "default")
         .length,
     [draft.homepageMultiPingNodeTaskIds, sortedClients],
   );
@@ -1383,7 +1384,7 @@ export function ThemeManage() {
               <dt>已绑定 Ping</dt>
               <dd>
                 {draft.enableHomepageMultiPing
-                  ? `三网覆盖 ${multiPingConfiguredNodeCount} 台`
+                  ? `节点模式覆盖 ${multiPingConfiguredNodeCount} 台`
                   : `${assignedNodeCount} / ${sortedClients.length}`}
               </dd>
             </div>
@@ -2196,7 +2197,7 @@ export function ThemeManage() {
         title="主页延迟检测"
         description={
           <>
-            单线路模式为每个节点绑定一项 Ping 任务；开启三网模式后，大卡片和小卡片默认展示三项全局任务，也可以为每台服务器单独覆盖探测点。迷你卡片与列表仍显示节点的单线路绑定。
+            单线路模式为每个节点绑定一项 Ping 任务；开启三网模式后，大卡片和小卡片默认展示全局三网，可按服务器选择自定义三网或原有单线路绑定。迷你卡片与列表仍使用单线路绑定。
             {" "}
             如果当前还没有可用任务，请先前往
             {" "}
@@ -2231,7 +2232,7 @@ export function ThemeManage() {
                   开启三网模式
                 </span>
                 <span className="mt-1 block text-[11px] leading-relaxed text-[var(--text-tertiary)]">
-                  大卡片和小卡片使用三网延迟；未单独配置的服务器继承下面的全局默认线路。
+                  大卡片和小卡片默认使用三网延迟；可按服务器切换为单线路绑定，未单独配置的服务器跟随全局。
                 </span>
               </span>
               <input
@@ -2363,7 +2364,7 @@ export function ThemeManage() {
 
           {draft.enableHomepageMultiPing && (
             <div className="text-[11px] text-[var(--text-tertiary)]">
-              下方单线路绑定继续用于迷你卡片和列表；大卡片与小卡片使用上方三项任务。
+              下方单线路绑定用于迷你卡片、列表，以及设为“单线路绑定”的大卡片和小卡片。
             </div>
           )}
 

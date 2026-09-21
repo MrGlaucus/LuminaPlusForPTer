@@ -8,6 +8,18 @@ import {
 import { DEFAULT_BACKGROUND_VIDEO_URL } from "@/utils/background";
 
 describe("normalizeThemeSettings", () => {
+  it("retains single-line node overrides and legacy custom selections", () => {
+    expect(normalizeThemeSettings({
+      enableHomepageMultiPing: true,
+      homepageMultiPingTaskIds: [1, 2, 3],
+      homepageMultiPingNodeTaskIds: {
+        single: { mode: "single", taskIds: [4, 5, 6] },
+        custom: [6, 5, 4],
+      },
+    }).homepageMultiPingNodeTaskIds).toEqual({
+      single: { mode: "single", taskIds: [4, 5, 6] }, custom: [6, 5, 4],
+    });
+  });
   it("defaults to image mode with the bundled desktop video ready to enable", () => {
     const settings = normalizeThemeSettings({});
 

@@ -16,7 +16,9 @@ import { Flag } from "@/components/ui/Flag";
 import { Spinner } from "@/components/ui/Spinner";
 import type { AdminClient, PingTask } from "@/types/komari";
 import {
-  createHomepageMultiPingTaskOverride,
+  homepagePingNodeMode,
+  switchHomepagePingNodeMode,
+  resolveHomepageMultiPingTaskIds,
   HOMEPAGE_MULTI_PING_TASK_COUNT,
   type HomepageMultiPingNodeTaskIds,
 } from "@/utils/pingTasks";
@@ -105,13 +107,13 @@ export function MultiPingNodeConfigPanel({
     [clients],
   );
   const customCount = useMemo(
-    () => clients.filter((client) => nodeTaskIds[client.uuid]).length,
+    () => clients.filter((client) => homepagePingNodeMode(nodeTaskIds[client.uuid]) !== "default").length,
     [clients, nodeTaskIds],
   );
   const invalidTaskIdsByClient = useMemo(() => {
     const next = new Map<string, number[]>();
     clients.forEach((client) => {
-      const taskIds = nodeTaskIds[client.uuid] ?? globalTaskIds;
+      const taskIds = resolveHomepageMultiPingTaskIds(client.uuid, globalTaskIds, nodeTaskIds);
       const invalidIds = invalidTaskIds(taskIds, client.uuid, taskClientsById);
       if (invalidIds.length > 0) next.set(client.uuid, invalidIds);
     });
@@ -121,7 +123,7 @@ export function MultiPingNodeConfigPanel({
   const filteredClients = useMemo(() => {
     const keyword = search.trim().toLowerCase();
     return clients.filter((client) => {
-      const isCustom = Boolean(nodeTaskIds[client.uuid]);
+      const isCustom = homepagePingNodeMode(nodeTaskIds[client.uuid]) !== "default";
       if (filter === "custom" && !isCustom) return false;
       if (filter === "default" && isCustom) return false;
       if (group && String(client.group || "").trim() !== group) return false;
@@ -137,7 +139,9 @@ export function MultiPingNodeConfigPanel({
       filteredClients[0],
     [filteredClients, selectedUuid],
   );
-  const selectedTaskIds = selectedClient ? nodeTaskIds[selectedClient.uuid] : undefined;
+  const selectedConfig = selectedClient ? nodeTaskIds[selectedClient.uuid] : undefined;
+  const selectedMode = homepagePingNodeMode(selectedConfig);
+  const selectedTaskIds = Array.isArray(selectedConfig) ? selectedConfig : undefined;
   const effectiveTaskIds = selectedTaskIds ?? globalTaskIds;
   const selectedInvalidTaskIds = selectedClient
     ? (invalidTaskIdsByClient.get(selectedClient.uuid) ?? EMPTY_TASK_IDS)
@@ -190,25 +194,15 @@ export function MultiPingNodeConfigPanel({
     setSelectedUuid(uuid);
     setMobileEditorOpen(true);
   };
-  const enableOverride = () => {
-    if (!selectedClient || !canEnableOverride) return;
-    const nextTaskIds = createHomepageMultiPingTaskOverride(
-      selectedTaskIds,
-      globalTaskIds,
-      tasks.map((task) => task.id),
+  const changeMode = (mode: "default" | "custom" | "single") => {
+    if (!selectedClient) return;
+    const next = switchHomepagePingNodeMode(
+      selectedConfig, mode, globalTaskIds, tasks.map((task) => task.id),
     );
-    if (!nextTaskIds) return;
-    onChange({
-      ...nodeTaskIds,
-      [selectedClient.uuid]: nextTaskIds,
-    });
+    if (next) onChange({ ...nodeTaskIds, [selectedClient.uuid]: next });
   };
-  const clearOverride = () => {
-    if (!selectedClient || !nodeTaskIds[selectedClient.uuid]) return;
-    const next = { ...nodeTaskIds };
-    delete next[selectedClient.uuid];
-    onChange(next);
-  };
+  const clearOverride = () => changeMode("default");
+  const enableOverride = () => changeMode("custom");
   const patchTask = (slot: number, rawValue: string) => {
     if (!selectedClient || !selectedTaskIds || rawValue === "") return;
     const nextTaskIds = [...selectedTaskIds];
@@ -336,7 +330,9 @@ export function MultiPingNodeConfigPanel({
               >
                 {visibleNodeWindow.map((client, windowIndex) => {
                   const clientIndex = nodeWindowStart + windowIndex;
-                  const override = nodeTaskIds[client.uuid];
+                  const config = nodeTaskIds[client.uuid];
+                  const mode = homepagePingNodeMode(config);
+                  const override = Array.isArray(config) ? config : undefined;
                   const invalidIds =
                     invalidTaskIdsByClient.get(client.uuid) ?? EMPTY_TASK_IDS;
                   const active = selectedClient?.uuid === client.uuid;
@@ -356,7 +352,7 @@ export function MultiPingNodeConfigPanel({
                           {client.name || client.uuid}
                         </span>
                         <span className="mt-1 block truncate text-[11px] text-[var(--text-tertiary)]">
-                          {override
+                          {mode === "single" ? "使用原有单线路绑定" : override
                             ? override
                                 .map((taskId) => taskLabel(taskId, tasksById))
                                 .join(" · ")
@@ -377,10 +373,10 @@ export function MultiPingNodeConfigPanel({
                           <AlertTriangle size={12} />
                           {fakePingForUnbound ? "将模拟" : "未绑定"}
                         </span>
-                      ) : override ? (
+                      ) : mode !== "default" ? (
                         <span className="multi-ping-config-status" title="已单独配置">
                           <Check size={12} />
-                          已覆盖
+                          {mode === "single" ? "单线路" : "自定义三网"}
                         </span>
                       ) : (
                         <ChevronRight
@@ -436,20 +432,20 @@ export function MultiPingNodeConfigPanel({
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <div className="text-[13px] font-medium text-[var(--text-primary)]">
-                        探测点来源
+                        显示模式
                       </div>
                       <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-tertiary)]">
-                        覆盖只影响当前服务器，并保留线路顺序。
+                        仅影响当前服务器；切换模式会保留已有线路配置。
                       </p>
                     </div>
-                    <div className="multi-ping-config-mode" aria-label="探测点来源">
+                    <div className="multi-ping-config-mode" aria-label="节点显示模式">
                       <button
                         type="button"
-                        aria-pressed={!selectedTaskIds}
+                        aria-pressed={selectedMode === "default"}
                         onClick={clearOverride}
-                        className={clsx(!selectedTaskIds && "is-active")}
+                        className={clsx(selectedMode === "default" && "is-active")}
                       >
-                        继承默认
+                        跟随全局
                       </button>
                       <button
                         type="button"
@@ -463,7 +459,15 @@ export function MultiPingNodeConfigPanel({
                             : "当前可用的 Ping 任务不足 3 个"
                         }
                       >
-                        单独配置
+                        自定义三网
+                      </button>
+                      <button
+                        type="button"
+                        aria-pressed={selectedMode === "single"}
+                        onClick={() => changeMode("single")}
+                        className={clsx(selectedMode === "single" && "is-active")}
+                      >
+                        单线路绑定
                       </button>
                     </div>
                   </div>
@@ -487,7 +491,12 @@ export function MultiPingNodeConfigPanel({
                     </div>
                   )}
 
-                  <div className="multi-ping-config-lines">
+                  {selectedMode === "single" ? (
+                    <div className="surface-inset p-4 text-[13px] leading-relaxed text-[var(--text-secondary)]">
+                      此节点使用原有单线路绑定，延迟与丢包恢复单线路展示。
+                      请在主题设置下方的单线路绑定区域选择 Ping 任务；未绑定时沿用原有未绑定节点的显示规则。
+                    </div>
+                  ) : <div className="multi-ping-config-lines">
                     {Array.from(
                       { length: HOMEPAGE_MULTI_PING_TASK_COUNT },
                       (_, slot) => {
@@ -555,9 +564,9 @@ export function MultiPingNodeConfigPanel({
                         );
                       },
                     )}
-                  </div>
+                  </div>}
 
-                  {selectedTaskIds && (
+                  {selectedMode !== "default" && (
                     <button
                       type="button"
                       onClick={clearOverride}

@@ -136,6 +136,30 @@ function pingOverviewResponse(taskId: number, value: number) {
 }
 
 describe("homepage ping polling selection", () => {
+  it("loads original single bindings alongside three-line nodes without extra node requests", async () => {
+    const loadOverview = vi.fn(async (
+      _hours?: number, taskId?: number, options?: { entityIds?: string[] },
+    ) => ({
+      ...pingOverviewResponse(taskId ?? 0, taskId ?? 0),
+      records: (options?.entityIds ?? []).map((client) => ({
+        task_id: taskId ?? 0, time: NOW, value: taskId ?? 0, client, count: 1, loss: 0,
+      })),
+      tasks: [{ id: taskId ?? 0, name: `Task ${taskId}`, type: "icmp", interval: 60,
+        clients: options?.entityIds ?? [] }],
+    }));
+    const result = await buildPingOverviewMap(
+      1, ["node-a", "node-b", "unbound"], { "4": ["node-b"] }, [1, 2, 3],
+      undefined, undefined, loadOverview as never, undefined, undefined,
+      { "node-b": { mode: "single", taskIds: [5, 6, 7] },
+        unbound: { mode: "single", taskIds: [] } },
+    );
+    expect(loadOverview).toHaveBeenCalledTimes(4);
+    const calls = new Map(loadOverview.mock.calls.map((call) => [call[1], call[2]?.entityIds]));
+    expect(calls).toEqual(new Map([[1, ["node-a"]], [2, ["node-a"]], [3, ["node-a"]], [4, ["node-b"]]]));
+    expect(result.singleItems.get("node-b")?.lastValue).toBe(4);
+    expect(result.multiLines.has("node-b")).toBe(false);
+    expect(result.multiLines.get("node-a")?.map((line) => line.taskId)).toEqual([1, 2, 3]);
+  });
   it("reports only the nodes affected by each completed task", async () => {
     const progress: Array<string[] | undefined> = [];
     const result = await buildPingOverviewMap(

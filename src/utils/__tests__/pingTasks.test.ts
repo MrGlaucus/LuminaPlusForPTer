@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createHomepageMultiPingTaskOverride,
+  switchHomepagePingNodeMode,
   normalizeHomepageMultiPingNodeTaskIds,
   normalizeHomepageMultiPingTaskIds,
   invertHomepagePingTaskBindings,
@@ -11,6 +12,39 @@ import {
 } from "@/utils/pingTasks";
 
 describe("homepage ping task bindings", () => {
+  it("mixes inherited, custom and single-line nodes without requesting unused tasks", () => {
+    const configs = normalizeHomepageMultiPingNodeTaskIds({
+      custom: [4, 5, 6],
+      single: { mode: "single", taskIds: [7, 8, 9] },
+      unbound: { mode: "single", taskIds: [] },
+      inherited: { mode: "default", taskIds: [7, 8, 9] },
+    });
+    const result = resolveHomepagePingSelections(
+      ["custom", "single", "unbound", "inherited", "legacy"],
+      { "10": ["single"] }, [1, 2, 3], configs,
+    );
+    expect(result.requestedTaskIdsByClient).toEqual(new Map([
+      ["single", [10]], ["custom", [4, 5, 6]],
+      ["inherited", [1, 2, 3]], ["legacy", [1, 2, 3]],
+    ]));
+    expect(resolveHomepageMultiPingTaskIds("single", [1, 2, 3], configs)).toEqual([]);
+  });
+
+  it("preserves custom task order through mode changes and a saved settings round trip", () => {
+    const single = switchHomepagePingNodeMode([6, 4, 5], "single", [1, 2, 3], []);
+    const saved = normalizeHomepageMultiPingNodeTaskIds(JSON.parse(JSON.stringify({ node: single })));
+    const inherited = switchHomepagePingNodeMode(saved.node, "default", [1, 2, 3], []);
+    expect(resolveHomepageMultiPingTaskIds("node", [1, 2, 3], { node: inherited! })).toEqual([1, 2, 3]);
+    expect(switchHomepagePingNodeMode(inherited, "custom", [1, 2, 3], [])).toEqual([6, 4, 5]);
+    expect(switchHomepagePingNodeMode(undefined, "custom", [1, 2, 3], [1, 2, 3])).toEqual([1, 2, 3]);
+  });
+
+  it("rejects invalid modes and sanitizes saved tasks without losing single-line selection", () => {
+    expect(normalizeHomepageMultiPingNodeTaskIds({
+      bad: { mode: "unknown", taskIds: [1, 2, 3] },
+      single: { mode: "single", taskIds: [1, 1, -1] },
+    })).toEqual({ single: { mode: "single", taskIds: [] } });
+  });
   it("accepts only positive decimal safe integers", () => {
     expect(
       normalizeHomepagePingTaskBindings({
