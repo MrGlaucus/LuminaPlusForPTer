@@ -41,6 +41,24 @@ describe("resolveVendorInfo", () => {
     expect(resolveVendorInfo(fields("阿里云香港"))?.id).toBe("alibabacloud");
   });
 
+  it("recognizes DataWave names and website references in every metadata field", () => {
+    for (const label of ["节点名称", "分组", "备注", "标签"]) {
+      for (const value of ["DataWave-HK", "https://datawave.sh", "DATA WAVE", "ＤａｔａＷａｖｅ"]) {
+        expect(resolveVendorInfo([{ label, value }])).toMatchObject({
+          id: "datawave",
+          logo: "/assets/vendors/datawave.svg",
+          source: "metadata",
+          trace: { fields: [label] },
+        });
+      }
+    }
+    expect(resolveVendorInfo(fields("DW-HK"))).toBeNull();
+    expect(resolveVendorByAsn(null, "DataWave")).toMatchObject({
+      id: "datawave",
+      source: "asn",
+    });
+  });
+
   it("does not let short keywords match inside longer words", () => {
     expect(resolveVendorInfo(fields("xovhx"))?.id).not.toBe("ovh");
     expect(resolveVendorInfo(fields("abwhc"))?.id).not.toBe("bandwagonhost");

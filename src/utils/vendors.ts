@@ -379,6 +379,14 @@ export const VENDOR_DB: readonly VendorDefinition[] = [
     badge: "ZO",
     color: "#0d3067",
   },
+  {
+    id: "datawave",
+    name: "DataWave",
+    keywords: ["datawave", "data wave"],
+    logoFile: "datawave.svg",
+    badge: "DW",
+    color: "#1637d3",
+  },
 ];
 
 const CJK_RE = /[\u3400-\u9fff]/;
