@@ -77,6 +77,15 @@ export function normalizeHomeGroupOrder(value: unknown): string[] {
   return Array.isArray(value) ? dedupeGroupLabels(value as Array<string | null | undefined>) : [];
 }
 
+/** 默认分组必须是当前可见的真实分组；旧配置或被隐藏的分组回退到「全部」。 */
+export function resolveDefaultHomeGroup(value: unknown, groups: readonly string[]): string {
+  if (typeof value !== "string") return HOME_ALL_GROUP;
+  const label = getHomeGroupLabel(value);
+  return label && label !== HOME_ALL_GROUP && groups.includes(label)
+    ? label
+    : HOME_ALL_GROUP;
+}
+
 /**
  * 按用户配置的 `order` 给 `groups` 排序:仍存在的已配置 group 排在前面(按配置顺序),其余 group
  * 保持原本首次出现的顺序。没设排序时原样返回 `groups`。

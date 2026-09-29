@@ -3,6 +3,7 @@ import type { HomeNodeSummary } from "@/services/wsStore";
 import {
   getHomeGroupOptions,
   normalizeHomeGroupOrder,
+  resolveDefaultHomeGroup,
   sortHomeGroupOptions,
 } from "@/utils/homeNodes";
 
@@ -36,6 +37,11 @@ describe("home node helpers", () => {
 });
 
 describe("home group ordering", () => {
+  it("selects the configured visible group and falls back when it disappears", () => {
+    expect(resolveDefaultHomeGroup(" VPS ", ["VPS", "Backup"])).toBe("VPS");
+    expect(resolveDefaultHomeGroup("VPS", ["Backup"])).toBe("__all__");
+    expect(resolveDefaultHomeGroup("", ["VPS"])).toBe("__all__");
+  });
   it("normalizeHomeGroupOrder trims, drops empties, dedupes, and rejects non-arrays", () => {
     expect(normalizeHomeGroupOrder([" A ", "B", "A", "", null, "B"])).toEqual(["A", "B"]);
     expect(normalizeHomeGroupOrder("nope")).toEqual([]);

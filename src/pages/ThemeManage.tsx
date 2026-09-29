@@ -308,6 +308,7 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     showProviderLogo: settings.showProviderLogo,
     providerOnlineLookup: settings.providerOnlineLookup,
     homeGroupOrder: settings.homeGroupOrder,
+    homeDefaultGroup: settings.homeDefaultGroup,
     enableHomeSort: settings.enableHomeSort,
     homeSortField: settings.homeSortField,
     homeSortDirection: settings.homeSortDirection,
@@ -1124,6 +1125,9 @@ export function ThemeManage() {
         rest.homepageMultiPingNodeTaskIds,
       ),
       homeGroupOrder: normalizeHomeGroupOrder(rest.homeGroupOrder),
+      homeDefaultGroup: typeof rest.homeDefaultGroup === "string"
+        ? rest.homeDefaultGroup.trim().slice(0, 200)
+        : "",
       trafficRatingLabels: ratingLabels.traffic,
       bandwidthRatingLabels: ratingLabels.bandwidth,
       assetRatingLabels: ratingLabels.asset,
@@ -1871,7 +1875,7 @@ export function ThemeManage() {
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <span className="text-[13px] font-medium text-[var(--text-primary)]">分组排序</span>
             <span className="text-[11px] text-[var(--text-tertiary)]">
-              调整首页分组 Tab 的显示顺序；未列出的分组按后端顺序排在后面。
+              调整首页分组 Tab 的顺序，并选择每次进入首页时默认显示的分组。
             </span>
           </div>
           {orderedDraftGroups.length === 0 ? (
@@ -1879,13 +1883,33 @@ export function ThemeManage() {
               {clientsLoading ? "正在加载分组…" : "暂无分组（节点未设置分组时无需排序）"}
             </p>
           ) : (
-            <ul className="mt-2 flex flex-col gap-2">
+            <ul className="mt-2 flex flex-col gap-2" aria-label="分组排序与默认分组">
+              <li className="surface-inset flex items-center gap-3 px-4 py-2.5">
+                <label className="flex cursor-pointer items-center gap-2 text-[13px] text-[var(--text-primary)]">
+                  <input
+                    type="radio"
+                    name="home-default-group"
+                    checked={!draft.homeDefaultGroup}
+                    onChange={() => patch("homeDefaultGroup", "")}
+                    aria-label="默认分组：全部"
+                  />
+                  默认显示全部
+                </label>
+              </li>
               {orderedDraftGroups.map((group, index) => (
                 <li
                   key={group}
                   className="surface-inset flex items-center justify-between gap-3 px-4 py-2.5"
                 >
                   <span className="flex min-w-0 items-center gap-2">
+                    <input
+                      type="radio"
+                      name="home-default-group"
+                      checked={draft.homeDefaultGroup === group}
+                      onChange={() => patch("homeDefaultGroup", group)}
+                      aria-label={`默认分组：${group}`}
+                      title={`进入首页时默认显示 ${group}`}
+                    />
                     <span className="tabular text-[12px] text-[var(--text-tertiary)]">
                       {index + 1}
                     </span>

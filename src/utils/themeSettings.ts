@@ -73,6 +73,7 @@ export interface ResolvedThemeSettings {
   showProviderLogo: boolean;
   providerOnlineLookup: boolean;
   homeGroupOrder: string[];
+  homeDefaultGroup: string;
   enableHomeSort: boolean;
   homeSortField: HomeSortField;
   homeSortDirection: HomeSortDirection;
@@ -134,6 +135,7 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
   // 默认开:本地识别命中不了时用 IP 在线查询 ASN/组织名补全;关闭后仅走本地关键词。
   providerOnlineLookup: true,
   homeGroupOrder: [],
+  homeDefaultGroup: "",
   enableHomeSort: true,
   homeSortField: "default",
   homeSortDirection: HOME_SORT_NATURAL_DIRECTION.default,
@@ -313,6 +315,9 @@ export function normalizeThemeSettings(
     showProviderLogo: settings?.showProviderLogo === true,
     providerOnlineLookup: enabledUnlessFalse(settings?.providerOnlineLookup),
     homeGroupOrder: normalizeHomeGroupOrder(settings?.homeGroupOrder),
+    homeDefaultGroup: typeof settings?.homeDefaultGroup === "string"
+      ? settings.homeDefaultGroup.trim().slice(0, 200)
+      : "",
     enableHomeSort: enabledUnlessFalse(settings?.enableHomeSort),
     ...normalizeHomeSortDefault(settings?.homeSortField, settings?.homeSortDirection),
     // 默认公开以保持存量站点升级后的展示行为；站长可显式关闭访客费用展示。

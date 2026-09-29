@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, CircleDollarSign } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, CircleDollarSign } from "lucide-react";
 import { Flag } from "@/components/ui/Flag";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -27,6 +27,7 @@ import {
   getHomeRegionOptions,
   HOME_ALL_GROUP,
   HOME_ALL_REGION,
+  resolveDefaultHomeGroup,
   sortHomeGroupOptions,
   type HomeRegionOption,
 } from "@/utils/homeNodes";
@@ -487,6 +488,8 @@ export function NodeGrid() {
     ? HOME_SORT_NATURAL_DIRECTION.default
     : configuredSortDirection;
   const [selectedGroup, setSelectedGroup] = useState(HOME_ALL_GROUP);
+  const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
+  const defaultGroupApplied = useRef(false);
   const [selectedRegion, setSelectedRegion] = useState(HOME_ALL_REGION);
   const [todayTrafficDialogOpen, setTodayTrafficDialogOpen] = useState(false);
   const [todayTrafficAnchorRect, setTodayTrafficAnchorRect] = useState<DOMRect | null>(null);
@@ -635,6 +638,14 @@ export function NodeGrid() {
       ),
     [visibleNodes, themeSettings.homeGroupOrder, themeSettings.isReady],
   );
+  // NodeGrid 每次进入首页都会重新挂载；等配置和节点列表就绪后只应用一次默认值。
+  // 随后的手动 Tab 切换不会被实时节点刷新覆盖。
+  useEffect(() => {
+    if (defaultGroupApplied.current || !themeSettings.isReady || !storeHydrated) return;
+    defaultGroupApplied.current = true;
+    if (!themeSettings.showGroupTabs) return;
+    setSelectedGroup(resolveDefaultHomeGroup(themeSettings.homeDefaultGroup, groupOptions));
+  }, [groupOptions, storeHydrated, themeSettings.homeDefaultGroup, themeSettings.isReady, themeSettings.showGroupTabs]);
   const groupFilteredNodes = useMemo(
     () =>
       selectedGroup === HOME_ALL_GROUP
@@ -701,12 +712,17 @@ export function NodeGrid() {
     () => (uuidsKey ? uuidsKey.split(UUID_KEY_SEPARATOR) : []),
     [uuidsKey],
   );
-  // 列表档由下方 NodeListView 渲染,这里不必构造卡片元素。
-  const cards = useMemo(
-    () =>
-      mode === "list"
-        ? null
-        : orderedUuids.map((uuid) => (
+  const groupedUuids = useMemo(
+    () => groupOptions.map((group) => ({
+      group,
+      uuids: orderedNodes
+        .filter((node) => getHomeGroupLabel(node.group) === group)
+        .map((node) => node.uuid),
+    })).filter(({ uuids }) => uuids.length > 0),
+    [groupOptions, orderedNodes],
+  );
+  const renderCards = (uuids: string[]) =>
+    uuids.map((uuid) => (
             <div key={uuid} className="min-w-0">
               {mode === "mini" ? (
                 <MiniNodeCard
@@ -728,9 +744,7 @@ export function NodeGrid() {
                 />
               )}
             </div>
-          )),
-    [costsVisible, orderedUuids, mode, showTrafficPopover],
-  );
+          ));
   const showGroupTabs =
     themeSettings.isReady && themeSettings.showGroupTabs && groupOptions.length > 0;
   const showHomeSort = sortEnabled && visibleNodes.length > 1;
@@ -747,17 +761,14 @@ export function NodeGrid() {
     : isMini
       ? ({ "--mini-card-min-width": `${minColumnWidth}px` } as MiniGridStyle)
       : { gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, ${minColumnWidth}px), 1fr))` };
-  const gridElement = (
+  const gridElement = (uuids: string[]) => (
     <div className={gridWrapClassName} style={gridStyle}>
-      {cards}
+      {renderCards(uuids)}
     </div>
   );
-  // 小弹窗「明细」优先打开弹窗而非跳转 /traffic 页面。
-  const gridWithDialogContext = (
-    <TodayTrafficDialogContext.Provider value={openTodayTrafficDialog}>
-      {gridElement}
-    </TodayTrafficDialogContext.Provider>
-  );
+  const renderNodes = (uuids: string[]) => isList
+    ? <NodeListView uuids={uuids} showCosts={costsVisible} />
+    : gridElement(uuids);
   // 迷你与列表档的控件栏借用小卡列宽，避免跟随密集内容列而被压窄。
   const borrowControlsGrid = isMini || isList;
   const controlsWrapClassName = borrowControlsGrid
@@ -865,15 +876,39 @@ export function NodeGrid() {
           onSelectRegion={setSelectedRegion}
         />
       )}
-      {isList ? (
-        <NodeListView uuids={orderedUuids} showCosts={costsVisible} />
-      ) : showTrafficPopover ? (
-        <TodayTrafficStatsProvider uuids={trafficUuids}>
-          {gridWithDialogContext}
+      <TodayTrafficDialogContext.Provider value={openTodayTrafficDialog}>
+        <TodayTrafficStatsProvider uuids={showTrafficPopover ? trafficUuids : []}>
+          {showGroupTabs && selectedGroup === HOME_ALL_GROUP ? (
+            <div className="home-group-sections">
+              {groupedUuids.map(({ group, uuids }) => {
+                const collapsed = collapsedGroups.includes(group);
+                return (
+                  <section key={group} className="home-group-section" aria-label={`${group}分组`}>
+                    <button
+                      type="button"
+                      className="home-group-section-toggle"
+                      aria-expanded={!collapsed}
+                      onClick={() => setCollapsedGroups((current) =>
+                        current.includes(group)
+                          ? current.filter((value) => value !== group)
+                          : [...current, group]
+                      )}
+                    >
+                      <span className="home-group-section-chevron">
+                        <ChevronDown size={14} className={collapsed ? "is-collapsed" : ""} aria-hidden />
+                      </span>
+                      <span className="home-group-section-title">{group}</span>
+                      <span className="home-group-section-count">{uuids.length}</span>
+                      <span className="home-group-section-rule" aria-hidden />
+                    </button>
+                    {!collapsed && <div className="home-group-section-content">{renderNodes(uuids)}</div>}
+                  </section>
+                );
+              })}
+            </div>
+          ) : renderNodes(orderedUuids)}
         </TodayTrafficStatsProvider>
-      ) : (
-        gridElement
-      )}
+      </TodayTrafficDialogContext.Provider>
     </>
   );
 }

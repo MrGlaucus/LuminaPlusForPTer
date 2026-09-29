@@ -130,6 +130,7 @@ export interface ThemeSettings {
   showProviderLogo?: boolean;
   providerOnlineLookup?: boolean;
   homeGroupOrder?: string[];
+  homeDefaultGroup?: string;
   enableHomeSort?: boolean;
   homeSortField?: "default" | "name" | "speed" | "traffic" | "price";
   homeSortDirection?: "asc" | "desc";

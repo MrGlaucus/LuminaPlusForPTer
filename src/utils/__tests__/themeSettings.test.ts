@@ -8,6 +8,10 @@ import {
 import { DEFAULT_BACKGROUND_VIDEO_URL } from "@/utils/background";
 
 describe("normalizeThemeSettings", () => {
+  it("defaults to all groups and retains one selected default group", () => {
+    expect(normalizeThemeSettings({}).homeDefaultGroup).toBe("");
+    expect(normalizeThemeSettings({ homeDefaultGroup: " VPS " }).homeDefaultGroup).toBe("VPS");
+  });
   it("retains single-line node overrides and legacy custom selections", () => {
     expect(normalizeThemeSettings({
       enableHomepageMultiPing: true,
