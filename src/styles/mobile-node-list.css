@@ -1,0 +1,88 @@
+/* 手机列表：一个连续面板，每个实例只占一条紧凑数据行。 */
+.mobile-node-list {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--surface-a);
+}
+
+.mobile-node-list-row {
+  display: block;
+  min-width: 0;
+  padding: 9px 10px 8px;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.mobile-node-list-row:last-child { border-bottom: 0; }
+.mobile-node-list-row:hover { background: var(--hover-bg-a); }
+.mobile-node-list-row:focus-visible { position: relative; outline: 2px solid var(--ring); outline-offset: -2px; }
+.mobile-node-list-row.is-loading { height: 70px; opacity: .5; }
+
+.mobile-node-list-head {
+  display: flex;
+  min-width: 0;
+  height: 18px;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 7px;
+}
+
+.mobile-node-list-status {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--status-success);
+}
+
+.mobile-node-list-row.is-offline .mobile-node-list-status { background: var(--status-offline); }
+.mobile-node-list-head .flag { flex: none; }
+
+.mobile-node-list-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 720;
+}
+
+.mobile-node-list-ping {
+  margin-left: auto;
+  flex: none;
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mobile-node-list-chevron { flex: none; color: var(--text-tertiary); }
+.mobile-node-list-row.is-offline .mobile-node-list-name { color: var(--text-tertiary); }
+
+.mobile-node-list-metrics {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.mobile-node-list-cell { display: block; min-width: 0; }
+.mobile-node-list-label { display: block; margin-bottom: 2px; color: var(--text-tertiary); font-size: 10px; line-height: 1; white-space: nowrap; }
+.mobile-node-list-value { display: block; overflow: hidden; white-space: nowrap; font-size: 12px; font-weight: 740; line-height: 1.2; font-variant-numeric: tabular-nums; letter-spacing: -.025em; }
+.mobile-node-list-value small { font-size: 9px; font-weight: 600; }
+.mobile-node-list-value.is-up { color: var(--progress-cpu); }
+.mobile-node-list-value.is-down { color: var(--status-success); }
+.mobile-node-list-row.is-offline .mobile-node-list-value { color: var(--text-tertiary); }
+
+.mobile-node-list-track { display: block; width: 90%; height: 3px; margin-top: 5px; overflow: hidden; border-radius: 4px; background: var(--progress-bg); }
+.mobile-node-list-fill { display: block; height: 100%; border-radius: 4px; background: var(--status-success); }
+.mobile-node-list-fill.is-warning { background: var(--status-warning); }
+.mobile-node-list-fill.is-critical { background: var(--status-offline); }
+
+@media (max-width: 360px) {
+  .mobile-node-list-row { padding-right: 7px; padding-left: 7px; }
+  .mobile-node-list-metrics { gap: 1px; }
+  .mobile-node-list-value { font-size: 10px; }
+  .mobile-node-list-value small { font-size: 8px; }
+}

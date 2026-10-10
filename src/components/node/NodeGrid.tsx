@@ -51,6 +51,7 @@ import { CompactNodeCard } from "./CompactNodeCard";
 import { MiniNodeCard } from "./MiniNodeCard";
 import { NodeCard } from "./NodeCard";
 import { NodeListView } from "./NodeListView";
+import { MobileNodeListView } from "./MobileNodeListView";
 import { TodayTrafficDialogContext } from "./NodeTodayTrafficPopover";
 import { RenewalReminder } from "./RenewalReminder";
 import { canViewCosts, type NodeViewMode } from "@/utils/themeSettings";
@@ -472,7 +473,7 @@ export function NodeGrid() {
   const { data: publicConfig } = usePublicConfig();
   const siteName = publicConfig?.sitename?.trim() || "节点概览";
   const themeSettings = useThemeSettings();
-  const { mode } = useViewMode();
+  const { mode, device } = useViewMode();
   const sort = useHomeSort();
   const costsVisible =
     themeSettings.isReady && canViewCosts(themeSettings, me?.logged_in === true);
@@ -767,7 +768,9 @@ export function NodeGrid() {
     </div>
   );
   const renderNodes = (uuids: string[]) => isList
-    ? <NodeListView uuids={uuids} showCosts={costsVisible} />
+    ? device === "mobile"
+      ? <MobileNodeListView uuids={uuids} />
+      : <NodeListView uuids={uuids} showCosts={costsVisible} />
     : gridElement(uuids);
   // 迷你与列表档的控件栏借用小卡列宽，避免跟随密集内容列而被压窄。
   const borrowControlsGrid = isMini || isList;

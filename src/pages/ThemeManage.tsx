@@ -103,7 +103,7 @@ const NODE_VIEW_MODE_OPTIONS = [
   { value: "mini", label: "迷你卡片", icon: Grid3x3 },
   { value: "list", label: "列表", icon: List },
 ] as const;
-const MOBILE_VIEW_MODE_OPTIONS = NODE_VIEW_MODE_OPTIONS.filter((option) => option.value !== "list");
+const MOBILE_VIEW_MODE_OPTIONS = NODE_VIEW_MODE_OPTIONS;
 const BACKGROUND_MEDIA_TYPE_OPTIONS: Array<{
   value: BackgroundMediaType;
   label: string;

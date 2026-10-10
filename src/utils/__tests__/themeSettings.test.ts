@@ -109,9 +109,7 @@ describe("normalizeThemeSettings", () => {
       "mini",
     );
     expect(normalizeThemeSettings({ mobileNodeViewMode: "mini" }).mobileNodeViewMode).toBe("mini");
-    expect(normalizeThemeSettings({ mobileNodeViewMode: "list" }).mobileNodeViewMode).toBe(
-      "compact",
-    );
+    expect(normalizeThemeSettings({ mobileNodeViewMode: "list" }).mobileNodeViewMode).toBe("list");
   });
 
   it("defaults overview ratings on unless explicitly disabled", () => {

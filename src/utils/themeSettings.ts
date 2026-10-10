@@ -199,16 +199,6 @@ function normalizeNodeViewMode(
   return typeof value === "string" && value.length > 0 ? "compact" : fallback;
 }
 
-// 列表档仅桌面可用(见 useViewMode 的 MOBILE_VIEW_MODES)。移动端即便配置里存了 "list"
-// (历史值/外部写入)也归一化回默认档,避免管理页无选中项、首页又强制回落 compact 的不一致。
-function normalizeMobileNodeViewMode(
-  value: unknown,
-  fallback: NodeViewMode,
-): NodeViewMode {
-  const mode = normalizeNodeViewMode(value, fallback);
-  return mode === "list" ? fallback : mode;
-}
-
 function enabledUnlessFalse(value: unknown) {
   return value !== false;
 }
@@ -287,7 +277,7 @@ export function normalizeThemeSettings(
       settings?.desktopNodeViewMode,
       DEFAULT_THEME_SETTINGS.desktopNodeViewMode,
     ),
-    mobileNodeViewMode: normalizeMobileNodeViewMode(
+    mobileNodeViewMode: normalizeNodeViewMode(
       settings?.mobileNodeViewMode,
       DEFAULT_THEME_SETTINGS.mobileNodeViewMode,
     ),
