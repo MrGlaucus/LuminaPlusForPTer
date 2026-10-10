@@ -7,7 +7,6 @@ import { OsLogo } from "@/components/ui/OsLogo";
 import { VendorLogo } from "@/components/ui/VendorLogo";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { useVendorInfo } from "@/hooks/useVendorInfo";
-import { speedRateColor } from "@/utils/metricTone";
 import { formatListPingStatus, resolveListPingState } from "./NodeListView";
 
 function percent(value: number): number {
@@ -79,11 +78,11 @@ const MobileNodeRow = memo(function MobileNodeRow({ uuid }: { uuid: string }) {
         <MetricCell label="负载" value={load} fraction={loadFraction} color="var(--progress-load)" offline={isOffline} />
         <span className="mobile-node-list-cell" title={isOffline ? "离线" : `上传 ${upRate.value} ${upRate.unit}`}>
           <span className="mobile-node-list-label"><ArrowUp size={9} strokeWidth={2.4} aria-hidden />上传</span>
-          <strong className="mobile-node-list-value" style={isOffline ? undefined : { color: speedRateColor(upRate.unit) }}>{up}<small>{upUnit}</small></strong>
+          <strong className="mobile-node-list-value" style={isOffline ? undefined : { color: "var(--traffic-up)" }}>{up}<small>{upUnit}</small></strong>
         </span>
         <span className="mobile-node-list-cell" title={isOffline ? "离线" : `下载 ${downRate.value} ${downRate.unit}`}>
           <span className="mobile-node-list-label"><ArrowDown size={9} strokeWidth={2.4} aria-hidden />下载</span>
-          <strong className="mobile-node-list-value" style={isOffline ? undefined : { color: speedRateColor(downRate.unit) }}>{down}<small>{downUnit}</small></strong>
+          <strong className="mobile-node-list-value" style={isOffline ? undefined : { color: "var(--traffic-down)" }}>{down}<small>{downUnit}</small></strong>
         </span>
       </span>
     </Link>
