@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, ChevronDown, CircleDollarSign } from "lucide-react";
-import { Flag } from "@/components/ui/Flag";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useAllNodeMeta,
@@ -29,13 +28,15 @@ import {
   HOME_ALL_REGION,
   resolveDefaultHomeGroup,
   sortHomeGroupOptions,
-  type HomeRegionOption,
 } from "@/utils/homeNodes";
 import { getDisplayRegionCode } from "@/utils/geo";
 import { useHomeSort } from "@/hooks/useHomeSort";
 import { useHomeNodeOrder } from "@/hooks/useHomeNodeOrder";
+import { useHomeFilterOrder } from "@/hooks/useHomeFilterOrder";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { HOME_SORT_NATURAL_DIRECTION } from "@/utils/homeSort";
 import { useHourlyClock, useMinuteClock } from "@/hooks/useClock";
+import { MOBILE_VIEWPORT_QUERY } from "@/utils/mediaQuery";
 import { preloadAssetsPage } from "@/services/assetsPageLoader";
 import {
   TodayTrafficStatsProvider,
@@ -43,6 +44,7 @@ import {
 } from "@/hooks/useTodayTrafficStats";
 import { TodayTrafficDialog } from "@/components/traffic/TodayTrafficDialog";
 import { HomeSortControl } from "./HomeSortControl";
+import { GroupTabs, RegionTabs } from "./HomeFilterTabs";
 import {
   getOverviewRating,
   type OverviewRating,
@@ -391,78 +393,6 @@ function HomeOverviewCards({
   );
 }
 
-function GroupTabs({
-  groups,
-  selectedGroup,
-  onSelectGroup,
-}: {
-  groups: string[];
-  selectedGroup: string;
-  onSelectGroup: (group: string) => void;
-}) {
-  return (
-    <div className="home-group-tabs" role="group" aria-label="节点分组">
-      <button
-        type="button"
-        aria-pressed={selectedGroup === HOME_ALL_GROUP}
-        data-active={selectedGroup === HOME_ALL_GROUP ? "true" : "false"}
-        onClick={() => onSelectGroup(HOME_ALL_GROUP)}
-      >
-        全部
-      </button>
-      {groups.map((group) => (
-        <button
-          key={group}
-          type="button"
-          aria-pressed={selectedGroup === group}
-          data-active={selectedGroup === group ? "true" : "false"}
-          onClick={() => onSelectGroup(group)}
-          title={group}
-        >
-          {group}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-// 地区筛选栏:按国旗聚合节点,点击某地区只看该地区;再点一次(或点已选中项)回到全部。
-// 与分组栏是两条独立筛选,可叠加(先分组、后地区)。
-function RegionTabs({
-  regions,
-  selectedRegion,
-  onSelectRegion,
-}: {
-  regions: HomeRegionOption[];
-  selectedRegion: string;
-  onSelectRegion: (region: string) => void;
-}) {
-  return (
-    <section className="home-region-bar" aria-label="地区筛选">
-      <div className="home-region-chips" role="group">
-        {regions.map(({ code, count }) => {
-          const active = selectedRegion === code;
-          return (
-            <button
-              key={code}
-              type="button"
-              className="home-region-chip"
-              data-active={active ? "true" : "false"}
-              aria-pressed={active}
-              onClick={() => onSelectRegion(active ? HOME_ALL_REGION : code)}
-              title={code}
-            >
-              <Flag region={code} size={14} />
-              <span className="home-region-chip-code">{code}</span>
-              <span className="home-region-chip-count">{count}</span>
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
 export function NodeGrid() {
   const now = useHourlyClock();
   const nodes = useHomeNodeSummaries();
@@ -475,6 +405,14 @@ export function NodeGrid() {
   const themeSettings = useThemeSettings();
   const { mode, device } = useViewMode();
   const sort = useHomeSort();
+  const isMobileViewport = useMediaQuery(MOBILE_VIEWPORT_QUERY, true);
+  const {
+    canReorder: canReorderFilters,
+    reorder: reorderFilters,
+    status: orderStatus,
+    errorMessage: orderError,
+  } = useHomeFilterOrder();
+  const filterReorderingEnabled = canReorderFilters && !isMobileViewport;
   const costsVisible =
     themeSettings.isReady && canViewCosts(themeSettings, me?.logged_in === true);
   // enableHomeSort 控制访客能否改排序;关闭时无视 session 覆盖、直接用管理员默认序(默认仍是 weight)。
@@ -656,9 +594,22 @@ export function NodeGrid() {
   );
   // 地区选项在分组筛选之后统计,让国旗计数反映当前分组内的分布。
   const regionOptions = useMemo(
-    () => getHomeRegionOptions(groupFilteredNodes),
-    [groupFilteredNodes],
+    () => getHomeRegionOptions(
+      groupFilteredNodes,
+      themeSettings.isReady ? themeSettings.homeRegionOrder : [],
+    ),
+    [groupFilteredNodes, themeSettings.homeRegionOrder, themeSettings.isReady],
   );
+  const availableRegions = useMemo(
+    () => getHomeRegionOptions(visibleNodes).map(({ code }) => code),
+    [visibleNodes],
+  );
+  const reorderGroups = useCallback((visibleOrder: string[]) => {
+    reorderFilters({ field: "homeGroupOrder", visibleOrder, availableOrder: groupOptions });
+  }, [reorderFilters, groupOptions]);
+  const reorderRegions = useCallback((visibleOrder: string[]) => {
+    reorderFilters({ field: "homeRegionOrder", visibleOrder, availableOrder: availableRegions });
+  }, [reorderFilters, availableRegions]);
   const filteredNodes = useMemo(
     () =>
       selectedRegion === HOME_ALL_REGION
@@ -859,6 +810,10 @@ export function NodeGrid() {
   return (
     <>
       {homeHeader}
+      <span className="sr-only" role="status">{orderStatus}</span>
+      {orderError && (
+        <div className="home-filter-order-error" role="alert">{orderError}</div>
+      )}
       {(showGroupTabs || showHomeSort) && (
         // 分组标签落首列、排序钉在末列右侧；窄屏时两者保持在同一控件栏内。
         <div className={controlsWrapClassName} style={controlsStyle}>
@@ -867,6 +822,8 @@ export function NodeGrid() {
               groups={groupOptions}
               selectedGroup={selectedGroup}
               onSelectGroup={setSelectedGroup}
+              canReorder={filterReorderingEnabled}
+              onReorder={reorderGroups}
             />
           )}
           {showHomeSort && <HomeSortControl state={sort} showPrice={costsVisible} />}
@@ -877,6 +834,8 @@ export function NodeGrid() {
           regions={regionOptions}
           selectedRegion={selectedRegion}
           onSelectRegion={setSelectedRegion}
+          canReorder={filterReorderingEnabled}
+          onReorder={reorderRegions}
         />
       )}
       <TodayTrafficDialogContext.Provider value={openTodayTrafficDialog}>
