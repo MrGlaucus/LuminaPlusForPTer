@@ -3,8 +3,6 @@ import { Link, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
-  ChevronDown,
-  ChevronUp,
   CircleDollarSign,
   EyeOff,
   Grid3x3,
@@ -933,7 +931,7 @@ export function ThemeManage() {
   );
 
   // 后端实际存在的分组,按首页 Tab 的渲染顺序排列(已配置的在前,未排序的在后)。
-  // 用户直接拖动这个列表来调整顺序。
+  // 顺序由首页拖动分组 Tab 调整,这里仅用于展示并选择默认分组。
   const availableGroups = useMemo(
     () => dedupeGroupLabels(sortedClients.map((client) => client.group)),
     [sortedClients],
@@ -942,13 +940,6 @@ export function ThemeManage() {
     () => sortHomeGroupOptions(availableGroups, draft.homeGroupOrder),
     [availableGroups, draft.homeGroupOrder],
   );
-  const moveGroup = (index: number, direction: -1 | 1) => {
-    const target = index + direction;
-    if (target < 0 || target >= orderedDraftGroups.length) return;
-    const next = [...orderedDraftGroups];
-    [next[index], next[target]] = [next[target], next[index]];
-    patch("homeGroupOrder", next);
-  };
 
   const filteredTasks = useMemo(() => {
     const keyword = taskSearch.trim().toLowerCase();
@@ -1875,17 +1866,17 @@ export function ThemeManage() {
 
         <div className="mt-4">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <span className="text-[13px] font-medium text-[var(--text-primary)]">分组排序</span>
+            <span className="text-[13px] font-medium text-[var(--text-primary)]">默认分组</span>
             <span className="text-[11px] text-[var(--text-tertiary)]">
-              调整首页分组 Tab 的顺序，并选择每次进入首页时默认显示的分组。
+              选择每次进入首页时默认显示的分组；分组顺序请在首页拖动分组 Tab 调整。
             </span>
           </div>
           {orderedDraftGroups.length === 0 ? (
             <p className="surface-inset mt-2 px-4 py-3 text-[12px] text-[var(--text-tertiary)]">
-              {clientsLoading ? "正在加载分组…" : "暂无分组（节点未设置分组时无需排序）"}
+              {clientsLoading ? "正在加载分组…" : "暂无分组（节点未设置分组时无需选择）"}
             </p>
           ) : (
-            <ul className="mt-2 flex flex-col gap-2" aria-label="分组排序与默认分组">
+            <ul className="mt-2 flex flex-col gap-2" aria-label="默认分组">
               <li className="surface-inset flex items-center gap-3 px-4 py-2.5">
                 <label className="flex cursor-pointer items-center gap-2 text-[13px] text-[var(--text-primary)]">
                   <input
@@ -1898,12 +1889,12 @@ export function ThemeManage() {
                   默认显示全部
                 </label>
               </li>
-              {orderedDraftGroups.map((group, index) => (
+              {orderedDraftGroups.map((group) => (
                 <li
                   key={group}
-                  className="surface-inset flex items-center justify-between gap-3 px-4 py-2.5"
+                  className="surface-inset flex items-center gap-3 px-4 py-2.5"
                 >
-                  <span className="flex min-w-0 items-center gap-2">
+                  <label className="flex min-w-0 cursor-pointer items-center gap-2 text-[13px] text-[var(--text-primary)]">
                     <input
                       type="radio"
                       name="home-default-group"
@@ -1912,36 +1903,10 @@ export function ThemeManage() {
                       aria-label={`默认分组：${group}`}
                       title={`进入首页时默认显示 ${group}`}
                     />
-                    <span className="tabular text-[12px] text-[var(--text-tertiary)]">
-                      {index + 1}
-                    </span>
-                    <span
-                      className="truncate text-[13px] text-[var(--text-primary)]"
-                      title={group}
-                    >
+                    <span className="truncate" title={group}>
                       {group}
                     </span>
-                  </span>
-                  <span className="flex shrink-0 items-center gap-1">
-                    <button
-                      type="button"
-                      disabled={index === 0}
-                      onClick={() => moveGroup(index, -1)}
-                      className="theme-manage-button is-compact"
-                      aria-label={`上移 ${group}`}
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={index === orderedDraftGroups.length - 1}
-                      onClick={() => moveGroup(index, 1)}
-                      className="theme-manage-button is-compact"
-                      aria-label={`下移 ${group}`}
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                  </span>
+                  </label>
                 </li>
               ))}
             </ul>
