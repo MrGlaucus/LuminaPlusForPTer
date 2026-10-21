@@ -176,6 +176,7 @@ export const VENDOR_DB: readonly VendorDefinition[] = [
     name: "腾讯云",
     keywords: ["tencentcloud", "tencent cloud", "tencent", "腾讯云"],
     asn: [132203],
+    logoFile: "tencentcloud.svg",
     badge: "TX",
     color: "#0052d9",
   },
