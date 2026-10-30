@@ -1,0 +1,7 @@
+<svg role="img" viewBox="0 0 162 61" xmlns="http://www.w3.org/2000/svg">
+  <title>LowEndCloud</title>
+  <!-- Vector adaptation of https://www.lowend.cloud/assets/apple-touch-icon.png: blue "LEC" wordmark
+       (L stem + three detached E bars + open C ring). Traced from the 180px asset, brand blue #0062FB.
+       Tight viewBox on the artwork bounds so the wide wordmark renders as large as the square slot allows. -->
+  <path fill="#0062FB" d="M0 0H15V46H41V59H0Z M48 0H102V13H48Z M48 23H90V36H48Z M48 46H102V59H48Z M134 0L149 2L156 6L161 12L152 19L142 13L133 13L129 15L122 24L121 32L123 39L130 46L137 48L142 47L152 41L161 47L154 55L140 60L130 59L119 54L111 45L108 37L108 23L114 11L121 5Z"/>
+</svg>

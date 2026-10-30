@@ -388,6 +388,15 @@ export const VENDOR_DB: readonly VendorDefinition[] = [
     badge: "DW",
     color: "#1637d3",
   },
+  {
+    id: "lowendcloud",
+    name: "LowEndCloud",
+    keywords: ["lowendcloud", "lowend cloud", "low end cloud", "lowend"],
+    asn: [47720],
+    logoFile: "lowendcloud.svg",
+    badge: "LEC",
+    color: "#0062fb",
+  },
 ];
 
 const CJK_RE = /[\u3400-\u9fff]/;
