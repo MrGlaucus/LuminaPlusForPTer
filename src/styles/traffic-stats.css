@@ -1,7 +1,9 @@
 /* 今日流量统计：沿用资产页的账本语言，只保留汇总、峰值和节点明细。 */
 .traffic-summary-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* 右栏(采样峰值)按内容定宽:节点名 + 峰值时间必须整行显示,不截断也不换行。
+     左栏吃掉剩余宽度,它的内容(大字号总量 + 日期)不挑宽度。 */
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto);
   gap: 14px;
 }
 
@@ -67,9 +69,11 @@
 
 .traffic-summary-peak-row {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
+  /* 标签列按内容收窄(「上行/下行」+ 图标实际只要 ~42px),把省下的宽度让给右侧
+     的速率与节点名,避免节点名被压到截断。 */
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   border-top: 1px solid color-mix(in srgb, var(--hairline) 76%, transparent);
   padding: 10px 0;
 }
@@ -110,13 +114,14 @@
   white-space: nowrap;
 }
 
+/* 「节点名 · 峰值时间」整行完整显示:不截断、不换行。
+   这里不能保留 min-width: 0 —— 那会让 flex 子项被压到内容宽度以下,
+   于是 overflow:hidden 又把尾巴吃掉。宽度改由父级 grid 的 auto 列兜住。 */
 .traffic-summary-peak-main small {
-  min-width: 0;
-  overflow: hidden;
+  flex: 0 0 auto;
   color: var(--text-tertiary);
   font-size: 10.5px;
   font-weight: 560;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
