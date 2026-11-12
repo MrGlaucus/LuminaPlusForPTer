@@ -234,6 +234,7 @@ function shallowEqualNodeInfo(a: NodeInfo, b: NodeInfo) {
     a.ipv6 === b.ipv6 &&
     a.cpu_name === b.cpu_name &&
     a.cpu_cores === b.cpu_cores &&
+    a.cpu_physical_cores === b.cpu_physical_cores &&
     a.arch === b.arch &&
     a.virtualization === b.virtualization &&
     a.os === b.os &&

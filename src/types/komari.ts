@@ -42,7 +42,10 @@ export const NodeInfoSchema = z
     region: z.union([z.string(), z.number()]).nullish().transform((v) => (v == null ? "" : String(v))),
     hidden: looseBool.default(false),
     cpu_name: looseString.default(""),
+    /** 逻辑处理器数(含超线程),即线程数。agent 侧取 cpu.Counts(true)。 */
     cpu_cores: looseNumber.default(0),
+    /** 物理核心数。agent 侧取 cpu.Counts(false);0 表示旧版 agent 未上报或读不到。 */
+    cpu_physical_cores: looseNumber.default(0),
     arch: looseString.default(""),
     virtualization: looseString.default(""),
     os: looseString.default(""),

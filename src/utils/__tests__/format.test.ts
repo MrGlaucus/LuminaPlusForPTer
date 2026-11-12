@@ -4,6 +4,7 @@ import {
   formatByteRate,
   formatByteRateLabel,
   formatClockTime,
+  formatCpuSpec,
   formatExpireDays,
   formatTrafficRateLabel,
   formatUptimeDays,
@@ -169,5 +170,32 @@ describe("parseTags", () => {
     expect(parseTags("CN2GIA")).toEqual([{ label: "CN2GIA", color: "blue" }]);
     expect(parseTags("4837")).toEqual([{ label: "4837", color: "green" }]);
     expect(parseTags("Random")).toEqual([{ label: "Random", color: "violet" }]);
+  });
+});
+
+describe("formatCpuSpec", () => {
+  it("shows physical cores and threads when hyper-threading is reported", () => {
+    expect(formatCpuSpec(8, 4)).toBe("4 核 / 8 线程");
+    expect(formatCpuSpec(12, 6)).toBe("6 核 / 12 线程");
+  });
+
+  it("omits the thread part when physical cores equal logical processors", () => {
+    expect(formatCpuSpec(4, 4)).toBe("4 核");
+    expect(formatCpuSpec(1, 1)).toBe("1 核");
+  });
+
+  it("falls back to threads when the agent does not report physical cores", () => {
+    expect(formatCpuSpec(8, 0)).toBe("8 线程");
+    expect(formatCpuSpec(8, null)).toBe("8 线程");
+    expect(formatCpuSpec(8, undefined)).toBe("8 线程");
+  });
+
+  it("trusts physical cores when the container reports fewer threads than cores", () => {
+    expect(formatCpuSpec(4, 8)).toBe("8 核");
+  });
+
+  it("returns an empty string when nothing is known", () => {
+    expect(formatCpuSpec(0, 0)).toBe("");
+    expect(formatCpuSpec(undefined, undefined)).toBe("");
   });
 });

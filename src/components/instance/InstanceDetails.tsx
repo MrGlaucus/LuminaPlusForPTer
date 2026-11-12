@@ -12,7 +12,9 @@ import {
 } from "./instanceTodayTrafficFormat";
 import {
   formatBytes,
+  formatCpuSpec,
   formatUptimeDays,
+  joinDisplayParts,
 } from "@/utils/format";
 import { resolveTrafficUsage } from "@/utils/traffic";
 import { InstancePanel } from "./InstancePanel";
@@ -88,7 +90,12 @@ export function InstanceDetails({
           )}
           <InfoRow
             label="CPU"
-            value={`${meta.cpu_name || "—"}${meta.cpu_cores > 0 ? ` (x${meta.cpu_cores})` : ""}`}
+            value={
+              joinDisplayParts([
+                meta.cpu_name,
+                formatCpuSpec(meta.cpu_cores, meta.cpu_physical_cores),
+              ]) || "—"
+            }
           />
           <InfoRow label="架构" value={meta.arch || "—"} />
           <InfoRow label="虚拟化" value={meta.virtualization || "—"} />

@@ -21,7 +21,7 @@ import { VendorLogo } from "@/components/ui/VendorLogo";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
 import { useVendorInfo } from "@/hooks/useVendorInfo";
-import { formatBytes } from "@/utils/format";
+import { formatBytes, formatCpuSpec } from "@/utils/format";
 import { HOMEPAGE_MULTI_PING_TASK_COUNT } from "@/utils/pingTasks";
 import { speedRateColor } from "@/utils/metricTone";
 import { supportsFineHover } from "@/utils/mediaQuery";
@@ -372,7 +372,7 @@ function CompactNodeVitals({
         icon={<Cpu size={12} />}
         label="CPU"
         value={formatCompactPercent(node.cpuPct)}
-        detail={`${node.cpu_cores || 0} 核`}
+        detail={formatCpuSpec(node.cpu_cores, node.cpu_physical_cores)}
         fraction={node.cpuPct / 100}
         color="var(--progress-cpu)"
       />

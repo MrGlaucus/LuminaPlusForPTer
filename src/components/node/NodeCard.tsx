@@ -20,7 +20,7 @@ import { usePreferences } from "@/hooks/usePreferences";
 import { useMetricColorsVersion } from "@/hooks/useMetricColors";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
 import { useVendorInfo } from "@/hooks/useVendorInfo";
-import { formatBytes } from "@/utils/format";
+import { formatBytes, formatCpuSpec } from "@/utils/format";
 import { HOMEPAGE_MULTI_PING_TASK_COUNT } from "@/utils/pingTasks";
 import {
   speedRateColor,
@@ -264,7 +264,7 @@ function NodeMetricSection({
         label="CPU"
         valueText={node.cpuPct.toFixed(2)}
         unit="%"
-        detailText={`${node.cpu_cores || 0} 核`}
+        detailText={formatCpuSpec(node.cpu_cores, node.cpu_physical_cores)}
         fraction={node.cpuPct / 100}
         redrawKey={redrawKey}
         paint="var(--progress-cpu)"

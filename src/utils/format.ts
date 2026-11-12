@@ -54,6 +54,31 @@ export function formatClockTime(timeMs: number | null | undefined): string {
   return CLOCK_TIME_FORMATTER.format(timeMs);
 }
 
+/**
+ * CPU 规格文案。
+ *
+ * `threads` 是 Komari 的 `cpu_cores`,它来自 `cpu.Counts(true)`,也就是**逻辑处理器数(含超线程)**,
+ * 不是物理核;`physicalCores` 是 `cpu_physical_cores`,来自 `cpu.Counts(false)`。
+ *
+ * - 物理核已知且小于线程数 → 「4 核 / 8 线程」
+ * - 物理核已知且不小于线程数(无超线程,或容器里读到反了) → 「4 核」
+ * - 只有线程数(旧版 agent / 读不到物理核) → 「8 线程」
+ * - 都没有 → 空串,由调用方渲染占位
+ */
+export function formatCpuSpec(
+  threads: number | null | undefined,
+  physicalCores: number | null | undefined,
+): string {
+  const threadCount = Math.max(0, Math.floor(Number(threads) || 0));
+  const physicalCount = Math.max(0, Math.floor(Number(physicalCores) || 0));
+  if (physicalCount > 0 && threadCount > physicalCount) {
+    return `${physicalCount} 核 / ${threadCount} 线程`;
+  }
+  if (physicalCount > 0) return `${physicalCount} 核`;
+  if (threadCount > 0) return `${threadCount} 线程`;
+  return "";
+}
+
 function formatRateValue(value: number): string {
   if (value >= 100) return Math.round(value).toString();
   if (value >= 10) return trimFixed(value, 1);
