@@ -152,7 +152,7 @@ const OVERVIEW_RATING_LABEL_FIELDS: Array<{
   { key: "traffic", title: "累计流量", toggleKey: "showTrafficRating" },
   { key: "bandwidth", title: "实时带宽", toggleKey: "showBandwidthRating" },
   { key: "todayTraffic", title: "今日流量", toggleKey: "showTodayTrafficRating" },
-  { key: "asset", title: "资产概览", toggleKey: "showAssetRating" },
+  { key: "asset", title: "月持有成本", toggleKey: "showAssetRating" },
 ];
 
 function sortTasks(tasks: PingTask[]) {

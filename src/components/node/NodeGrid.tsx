@@ -134,7 +134,7 @@ function HomeOverviewCards({
   dense,
 }: {
   overview: HomeOverview;
-  costSummary: { remainingCny: number } | null;
+  costSummary: { monthlyCny: number } | null;
   costLoading: boolean;
   dense: boolean;
   showOverviewRatings: boolean;
@@ -166,10 +166,12 @@ function HomeOverviewCards({
     overview.totalNodes > 0 ? (overview.onlineNodes / overview.totalNodes) * 100 : 0;
   const offlinePct =
     overview.totalNodes > 0 ? (overview.offlineNodes / overview.totalNodes) * 100 : 0;
-  const remainingValue = !showCosts
+  // 卡片只展示一个数字:月持有成本(即费用明细里的「月均支出」,monthlyCny)。
+  // 剩余价值/实际剩余价值/年化等口径留在资产页,不在这张卡上摊开。
+  const monthlyCostValue = !showCosts
     ? "-"
     : costSummary
-      ? formatCnyMoney(costSummary.remainingCny)
+      ? formatCnyMoney(costSummary.monthlyCny)
       : costLoading
         ? "计算中"
         : "—";
@@ -195,7 +197,7 @@ function HomeOverviewCards({
     showOverviewRatings && showAssetRating && costSummary
       ? getOverviewRating({
           kind: "asset",
-          value: costSummary.remainingCny,
+          value: costSummary.monthlyCny,
           customLabels: assetRatingLabels,
         })
       : null;
@@ -290,14 +292,14 @@ function HomeOverviewCards({
 
       <article className="overview-card" data-metric="asset">
         <div className="overview-card-head">
-          <span className="overview-card-label">资产概览</span>
+          <span className="overview-card-label">月持有成本</span>
           {showDetailButton && <RenewalReminder nodes={renewalNodes} />}
         </div>
         <div className="overview-card-main">
-          <p className="overview-card-value">{remainingValue}</p>
+          <p className="overview-card-value">{monthlyCostValue}</p>
         </div>
         <div className="overview-card-footer">
-          <p className="overview-card-caption">实时汇率计算</p>
+          <p className="overview-card-caption">实时汇率折算</p>
           {renderRating(assetRating)}
         </div>
       </article>

@@ -7,20 +7,20 @@ import {
 const GB = 1024 ** 3;
 
 describe("overview ratings", () => {
-  it("rates assets by the configured CNY ranges", () => {
-    expect(getOverviewRating({ kind: "asset", value: 500 })).toEqual({
+  it("rates monthly holding cost by the configured CNY ranges", () => {
+    expect(getOverviewRating({ kind: "asset", value: 30 })).toEqual({
       level: 0,
       label: "入门",
     });
-    expect(getOverviewRating({ kind: "asset", value: 1500 })).toEqual({
+    expect(getOverviewRating({ kind: "asset", value: 150 })).toEqual({
       level: 1,
       label: "标准",
     });
-    expect(getOverviewRating({ kind: "asset", value: 3000 })).toEqual({
+    expect(getOverviewRating({ kind: "asset", value: 300 })).toEqual({
       level: 2,
       label: "顶级",
     });
-    expect(getOverviewRating({ kind: "asset", value: 3000.01 })).toEqual({
+    expect(getOverviewRating({ kind: "asset", value: 300.01 })).toEqual({
       level: 3,
       label: "富佬",
     });
@@ -48,7 +48,7 @@ describe("overview ratings", () => {
 
   it("applies custom labels to the resolved rating", () => {
     expect(
-      getOverviewRating({ kind: "asset", value: 1063.83, customLabels: "练气,筑基,结丹,元婴" }),
+      getOverviewRating({ kind: "asset", value: 80, customLabels: "练气,筑基,结丹,元婴" }),
     ).toEqual({
       level: 1,
       label: "筑基",
