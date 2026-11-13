@@ -166,7 +166,7 @@ function HomeOverviewCards({
     overview.totalNodes > 0 ? (overview.onlineNodes / overview.totalNodes) * 100 : 0;
   const offlinePct =
     overview.totalNodes > 0 ? (overview.offlineNodes / overview.totalNodes) * 100 : 0;
-  // 卡片只展示一个数字:月持有成本(即费用明细里的「月均支出」,monthlyCny)。
+  // 卡片只展示一个数字:月均支出(monthlyCny,与资产页「月均支出」同口径)。
   // 剩余价值/实际剩余价值/年化等口径留在资产页,不在这张卡上摊开。
   const monthlyCostValue = !showCosts
     ? "-"
@@ -292,7 +292,7 @@ function HomeOverviewCards({
 
       <article className="overview-card" data-metric="asset">
         <div className="overview-card-head">
-          <span className="overview-card-label">月持有成本</span>
+          <span className="overview-card-label">月均支出</span>
           {showDetailButton && <RenewalReminder nodes={renewalNodes} />}
         </div>
         <div className="overview-card-main">

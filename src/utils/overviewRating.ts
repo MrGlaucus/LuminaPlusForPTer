@@ -52,7 +52,7 @@ export function getOverviewRating({
   const labels = normalizeOverviewRatingLabels(kind, customLabels);
   const level =
     kind === "asset"
-      ? // 口径是「月持有成本」(CNY/月),不是剩余价值——阈值按月度开销校准:
+      ? // 口径是「月均支出」(CNY/月),不是剩余价值——阈值按月度开销校准:
         // 50 元以下入门,50~150 标准,150~300 顶级,300 以上富佬。
         levelFromThresholds(value, [50, 150, 300])
       : kind === "traffic"

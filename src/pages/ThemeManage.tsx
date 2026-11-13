@@ -152,7 +152,7 @@ const OVERVIEW_RATING_LABEL_FIELDS: Array<{
   { key: "traffic", title: "累计流量", toggleKey: "showTrafficRating" },
   { key: "bandwidth", title: "实时带宽", toggleKey: "showBandwidthRating" },
   { key: "todayTraffic", title: "今日流量", toggleKey: "showTodayTrafficRating" },
-  { key: "asset", title: "月持有成本", toggleKey: "showAssetRating" },
+  { key: "asset", title: "月均支出", toggleKey: "showAssetRating" },
 ];
 
 function sortTasks(tasks: PingTask[]) {
@@ -1920,7 +1920,7 @@ export function ThemeManage() {
                 总览评级
               </span>
               <span className="mt-1 block text-[11px] text-[var(--text-tertiary)]">
-                在累计流量、实时带宽、资产概览右下角显示文字评级；名称用英文逗号分隔，只取前四个。
+                在累计流量、实时带宽、月均支出右下角显示文字评级；名称用英文逗号分隔，只取前四个。
               </span>
             </span>
             <label className="inline-flex shrink-0 items-center gap-2 text-[12px] font-medium text-[var(--text-secondary)]">
@@ -2118,7 +2118,7 @@ export function ThemeManage() {
             <ToggleRow
               field="showCostSummary"
               title="显示资产页入口按钮"
-              desc="在首页资产概览卡右上角显示进入资产统计页的按钮。"
+              desc="在首页月均支出卡右上角显示进入资产统计页的按钮。"
               checked={draft.showCostSummary}
               onPatch={patch}
             />
