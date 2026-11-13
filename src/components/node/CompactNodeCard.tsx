@@ -373,6 +373,7 @@ function CompactNodeVitals({
         label="CPU"
         value={formatCompactPercent(node.cpuPct)}
         detail={formatCpuSpec(node.cpu_cores, node.cpu_physical_cores)}
+        showDetail
         fraction={node.cpuPct / 100}
         color="var(--progress-cpu)"
       />
@@ -381,6 +382,7 @@ function CompactNodeVitals({
         label="负载"
         value={node.load1.toFixed(2)}
         detail={`${node.load5.toFixed(2)} / ${node.load15.toFixed(2)}`}
+        showDetail
         fraction={loadFraction}
         color="var(--progress-load)"
       />

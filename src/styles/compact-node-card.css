@@ -223,7 +223,7 @@
   white-space: nowrap;
 }
 
-/* 进度条贴底,保证同行内「有详情」与「无详情」(负载)的仪表条仍然对齐。 */
+/* 进度条贴底,保证同行内各指标的仪表条对齐(四个指标现在都带详情行)。 */
 .compact-node-vitals .compact-node-gauge-track {
   margin-top: auto;
 }
