@@ -574,29 +574,9 @@
   gap: 22px;
 }
 
-/* 标签行 — 无上边框,pill 紧贴 footer meta 行之后 */
-.dstatus-tags-row {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  gap: 0.375rem;
-  overflow: hidden;
-  padding-top: 0.125rem;
-}
-
-.dstatus-tags-measure {
-  position: absolute;
-  top: 0;
-  left: -9999px;
-  width: max-content;
-  overflow: visible;
-  visibility: hidden;
-  pointer-events: none;
-}
-
+/* 标签胶囊已上移到 header 的 subtitle 行,靠 flex-wrap 自动折行,不再需要定宽裁剪。 */
 .dstatus-tag-chip {
-  /* 可收缩:单个超宽标签(无标签能完整放下时保留)会省略号截断到行宽而非溢出;
-     能放下的标签永不收缩,因为 measure 阶段已保证其总宽度放得下。 */
+  /* 可收缩:单个超宽标签(一行放不下时)省略号截断,不撑破容器。 */
   flex: 0 1 auto;
   min-width: 0;
   max-width: 10rem;

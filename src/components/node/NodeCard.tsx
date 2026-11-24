@@ -1,4 +1,4 @@
-import { memo, useCallback, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { memo, useCallback, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   Cpu,
@@ -37,7 +37,6 @@ import { NodeTodayTrafficPopover } from "./NodeTodayTrafficPopover";
 import { TrafficQuotaLabel } from "./TrafficQuotaLabel";
 import type { TrafficResetDisplay } from "@/utils/trafficReset";
 import {
-  joinTagTitle,
   nodeDetailLinkLabels,
   pingEmptyLabels,
   TRAFFIC_SLIVER_RATIO,
@@ -119,6 +118,8 @@ export const NodeCard = memo(function NodeCard({
           subtitle={subtitle}
           osName={osName}
           showTodayTraffic={showTodayTraffic}
+          footerTags={footerTags}
+          renewalPrice={showCosts ? renewalPrice : null}
         />
 
         <div className="server-card-stack">
@@ -187,8 +188,6 @@ export const NodeCard = memo(function NodeCard({
           expire={expire}
           expireColor={expireColor}
           uptime={uptime}
-          footerTags={footerTags}
-          renewalPrice={showCosts ? renewalPrice : null}
         />
       </div>
     </article>
@@ -200,11 +199,15 @@ function NodeCardHeader({
   subtitle,
   osName,
   showTodayTraffic,
+  footerTags,
+  renewalPrice,
 }: {
   node: NodeCardNode;
   subtitle: string;
   osName: string;
   showTodayTraffic: boolean;
+  footerTags: DisplayTag[];
+  renewalPrice: string | null;
 }) {
   const detailLabels = nodeDetailLinkLabels(node.name, osName);
   const vendor = useVendorInfo(node);
@@ -222,7 +225,7 @@ function NodeCardHeader({
             {node.name}
           </Link>
         </div>
-        {(subtitle || node.ipv4 || node.ipv6) && (
+        {(subtitle || node.ipv4 || node.ipv6 || footerTags.length > 0 || renewalPrice) && (
           <div className="server-card-subtitle-row">
             {subtitle && (
               <span className="server-card-subtitle" title={subtitle}>
@@ -230,6 +233,10 @@ function NodeCardHeader({
               </span>
             )}
             <IpStackBadges ipv4={node.ipv4} ipv6={node.ipv6} />
+            {footerTags.map((tag, index) => (
+              <FooterTagChip key={`${tag.label}-${index}`} tag={tag} />
+            ))}
+            {renewalPrice && <FooterPriceChip renewalPrice={renewalPrice} titled />}
           </div>
         )}
       </div>
@@ -592,79 +599,11 @@ function NodeCardFooter({
   expire,
   expireColor,
   uptime,
-  footerTags,
-  renewalPrice,
 }: {
   expire: DisplayStat;
   expireColor: string;
   uptime: DisplayStat;
-  footerTags: DisplayTag[];
-  renewalPrice: string | null;
 }) {
-  const rowRef = useRef<HTMLDivElement>(null);
-  const measureRef = useRef<HTMLDivElement>(null);
-  const [visibleTagCount, setVisibleTagCount] = useState(footerTags.length);
-  const visibleTags = footerTags.slice(0, visibleTagCount);
-  // 完整 tag 列表挂在这一行的 tooltip 上;chip 不带自己的 title,hover 会穿透到行上 ——
-  // fit 阶段丢掉的 tag 就靠这个保持可见,不用显示"+N"角标。
-  const tagTitle = joinTagTitle(footerTags);
-
-  useLayoutEffect(() => {
-    const row = rowRef.current;
-    const measure = measureRef.current;
-    if (!row || !measure) return;
-
-    // chip 间距是个固定的 CSS token,每次 effect 跑读一次就够,不必每个 resize tick 都读。
-    const styles = window.getComputedStyle(measure);
-    const gap = Number.parseFloat(styles.columnGap || styles.gap || "0") || 0;
-
-    const updateVisibleTags = () => {
-      const availableWidth = row.clientWidth;
-      const children = Array.from(measure.children) as HTMLElement[];
-      const tagWidths = children.slice(0, footerTags.length).map((child) => child.offsetWidth);
-      const priceWidth = renewalPrice ? (children[footerTags.length]?.offsetWidth ?? 0) : 0;
-
-      let usedWidth = renewalPrice ? priceWidth : 0;
-      let nextVisibleCount = 0;
-
-      for (const width of tagWidths) {
-        const nextWidth = usedWidth + (usedWidth > 0 ? gap : 0) + width;
-        if (nextWidth > availableWidth) break;
-        usedWidth = nextWidth;
-        nextVisibleCount += 1;
-      }
-
-      // 绝不塌成空行:就算第一个 tag 比价格 chip 之后剩的空间还宽,也照样显示,交给 CSS 省略号截断。
-      if (nextVisibleCount === 0 && tagWidths.length > 0) nextVisibleCount = 1;
-
-      setVisibleTagCount((current) =>
-        current === nextVisibleCount ? current : nextVisibleCount,
-      );
-    };
-
-    updateVisibleTags();
-
-    let cancelled = false;
-    const observer =
-      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateVisibleTags);
-    if (observer) {
-      observer.observe(row);
-    } else {
-      window.addEventListener("resize", updateVisibleTags);
-    }
-    // 字体替换会在首次绘制后改变 tag 宽度;字体就绪后重新测量一次,
-    // 但若卡片在 promise resolve 前已卸载则跳过。
-    document.fonts?.ready.then(() => {
-      if (!cancelled) updateVisibleTags();
-    });
-
-    return () => {
-      cancelled = true;
-      observer?.disconnect();
-      if (!observer) window.removeEventListener("resize", updateVisibleTags);
-    };
-  }, [footerTags, renewalPrice]);
-
   return (
     <div className="server-card-footer">
       <div className="server-card-meta-grid">
@@ -683,22 +622,6 @@ function NodeCardFooter({
           color={expireColor}
         />
       </div>
-      {(footerTags.length > 0 || renewalPrice) && (
-        <>
-          <div className="dstatus-tags-row" ref={rowRef} title={footerTags.length > 0 ? tagTitle : undefined}>
-            {visibleTags.map((tag, index) => (
-              <FooterTagChip key={`${tag.label}-${index}`} tag={tag} />
-            ))}
-            {renewalPrice && <FooterPriceChip renewalPrice={renewalPrice} titled />}
-          </div>
-          <div className="dstatus-tags-row dstatus-tags-measure" ref={measureRef} aria-hidden>
-            {footerTags.map((tag, index) => (
-              <FooterTagChip key={`${tag.label}-${index}`} tag={tag} />
-            ))}
-            {renewalPrice && <FooterPriceChip renewalPrice={renewalPrice} />}
-          </div>
-        </>
-      )}
     </div>
   );
 }
