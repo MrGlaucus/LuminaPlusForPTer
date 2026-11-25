@@ -96,13 +96,15 @@
   font-weight: 650;
 }
 
+/* 两栏:速率左对齐成一条竖线,「节点名 · 时间」贴右对齐成一条竖线。
+   原先用 flex + justify-content: flex-end 把整组贴到右边缘,速率左边缘于是
+   随尾巴文字长短前后浮动,上行/下行两行的数字对不齐。 */
 .traffic-summary-peak-main {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   min-width: 0;
   align-items: baseline;
-  justify-content: flex-end;
   gap: 8px;
-  text-align: right;
 }
 
 .traffic-summary-peak-main strong {
@@ -115,10 +117,11 @@
 }
 
 /* 「节点名 · 峰值时间」整行完整显示:不截断、不换行。
-   这里不能保留 min-width: 0 —— 那会让 flex 子项被压到内容宽度以下,
-   于是 overflow:hidden 又把尾巴吃掉。宽度改由父级 grid 的 auto 列兜住。 */
+   用 justify-self: end 贴住 1fr 列的右端;列宽不足时向左溢出,
+   既不会被裁掉尾巴,也不会把左侧的速率挤走。 */
 .traffic-summary-peak-main small {
-  flex: 0 0 auto;
+  justify-self: end;
+  text-align: right;
   color: var(--text-tertiary);
   font-size: 10.5px;
   font-weight: 560;
